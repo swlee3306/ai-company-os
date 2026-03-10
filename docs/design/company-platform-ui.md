@@ -120,6 +120,16 @@ Across all screens, the minimum interaction states are defined and represented:
 - Tablet (768 px to 1199 px): collapse secondary panels into tabs/stacked sections.
 - Mobile (< 768 px): single-column flow; action bar becomes sticky bottom/top action group; tables convert to stacked cards with key-value rows.
 
+## Layout and Spacing Rules
+- All five PRD screens use an 8pt grid baseline; all frame sizes/offsets/gaps align to 8px increments.
+- Root screen frame padding: 32px.
+- Primary section spacing (vertical rhythm between major blocks): 24px.
+- Card-to-card spacing (within columns/rows): 16px.
+- Card internal spacing: 16px (padding and internal content gaps standardized to 16px).
+- Column gutters are equalized at 16px across each two-column screen composition.
+- Header rows are normalized to a shared height and spacing pattern; action button containers and button heights are aligned to keep button baselines consistent.
+- Off-by-1 spacing and uneven vertical rhythm are removed by enforcing shared constants (`32 / 24 / 16`) and 8pt multiples across screen layouts.
+
 ## Design Tokens
 No new token system is introduced in this revision. Existing Pencil design tokens/styles from `design/company-ui.pen` are reused.
 
