@@ -1819,7 +1819,7 @@
               "fill": "$text",
               "textGrowth": "fixed-width",
               "width": 1230,
-              "content": "planner-manager-01    manager    active    org:* + task:assign    v1.8.2    8s ago",
+              "content": "planner-manager-01    PM    active    org:* + task:assign    v1.8.2    8s ago",
               "lineHeight": 1.5,
               "fontFamily": "JetBrains Mono",
               "fontSize": 12,
