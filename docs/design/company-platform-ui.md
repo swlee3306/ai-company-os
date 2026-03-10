@@ -23,15 +23,22 @@ Design source artifacts:
 5. Team Lead uses **Diagnostics / Settings** to run diagnostics (`doctor`), review remediation guidance, and verify integration/settings health.
 
 ## Screens List (PRD Required)
+The Pencil source board contains additional screens/components beyond the PRD minimum. The PRD-required five screens are mapped to the following Pencil frames and export artifacts.
+
 1. **Installation / Onboarding**  
+   Pencil frame: `AI Company OS / Login`  
    Artifact: [install-onboarding.png](../../design/exports/install-onboarding.png)
 2. **Operations Dashboard**  
+   Pencil frame: `AI Company OS / Dashboard`  
    Artifact: [operations-dashboard.png](../../design/exports/operations-dashboard.png)
 3. **Task Board / Detail**  
+   Pencil frames: `AI Company OS / Task Workflow Board` + `AI Company OS / Task Detail`  
    Artifact: [task-board-detail.png](../../design/exports/task-board-detail.png)
 4. **Logs And Audit**  
+   Pencil frame: `AI Company OS / Audit Logs`  
    Artifact: [logs-audit.png](../../design/exports/logs-audit.png)
 5. **Diagnostics / Settings**  
+   Pencil frame: `AI Company OS / Settings`  
    Artifact: [diagnostics-settings.png](../../design/exports/diagnostics-settings.png)
 
 ## Screen Specs
@@ -136,12 +143,20 @@ Across all screens, the minimum interaction states are defined and represented:
 No new token system is introduced in this revision. Existing Pencil design tokens/styles from `design/company-ui.pen` are reused.
 
 ## Export Artifacts (REQ-UX-005)
-Canonical screenshot filenames present under `design/exports/`:
+Canonical screenshot filenames under `design/exports/`:
 - [install-onboarding.png](../../design/exports/install-onboarding.png)
 - [operations-dashboard.png](../../design/exports/operations-dashboard.png)
 - [task-board-detail.png](../../design/exports/task-board-detail.png)
 - [logs-audit.png](../../design/exports/logs-audit.png)
 - [diagnostics-settings.png](../../design/exports/diagnostics-settings.png)
+
+## REQ-UX-006: Export Filename Mapping
+Because the Pencil board uses extended screen names, the canonical export filenames map to Pencil frames as follows:
+- `install-onboarding.png` → `AI Company OS / Login`
+- `operations-dashboard.png` → `AI Company OS / Dashboard`
+- `task-board-detail.png` → `AI Company OS / Task Workflow Board` + `AI Company OS / Task Detail`
+- `logs-audit.png` → `AI Company OS / Audit Logs`
+- `diagnostics-settings.png` → `AI Company OS / Settings`
 
 ## Acceptance Criteria Checklist
 - [x] Design spec covers all five PRD-required screens.
