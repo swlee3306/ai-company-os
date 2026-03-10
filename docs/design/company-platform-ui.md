@@ -77,17 +77,17 @@ Design source artifacts:
 ## REQ-UX-002: Primary UI Action -> CLI/System Mapping
 | Screen | Primary UI action | CLI/system command | Expected system effect |
 | --- | --- | --- | --- |
-| Installation / Onboarding | Run install | `company-os install` | Validates prerequisites, applies driver config, bootstraps platform, emits install audit record. |
+| Installation / Onboarding | Run install | `company install` | Validates prerequisites, applies driver config, bootstraps platform, emits install audit record. |
 | Installation / Onboarding | Select driver | System config action (`driver=k3d` default or `driver=k3s`) used by `install`/runtime | Persists runtime driver selection surfaced later by `status`. |
-| Operations Dashboard | Start platform | `company-os up` | Starts runtime services and updates health/incident status. |
-| Operations Dashboard | Stop platform | `company-os down` | Stops runtime services cleanly and records lifecycle event. |
-| Operations Dashboard | Refresh status | `company-os status` | Returns driver, health, queue, and issue summary for dashboard cards/banner. |
-| Task Board / Detail | Submit task | `company-os task submit` | Creates queued task with ID and initial audit/log trail. |
-| Task Board / Detail | Inspect task | `company-os task inspect <task-id>` | Returns task metadata, owner/state timeline, and linked evidence. |
-| Task Board / Detail | List tasks | `company-os task list` | Returns filtered task queue/board data. |
-| Logs And Audit | View logs | `company-os logs --task <task-id>` or `company-os logs --system` | Retrieves task-scoped or system-scoped logs. |
+| Operations Dashboard | Start platform | `company up` | Starts runtime services and updates health/incident status. |
+| Operations Dashboard | Stop platform | `company down` | Stops runtime services cleanly and records lifecycle event. |
+| Operations Dashboard | Refresh status | `company status` | Returns driver, health, queue, and issue summary for dashboard cards/banner. |
+| Task Board / Detail | Submit task | `company task "..."` | Creates queued task with ID and initial audit/log trail. |
+| Task Board / Detail | Inspect task | `company task inspect <task-id>` | Returns task metadata, owner/state timeline, and linked evidence. |
+| Task Board / Detail | List tasks | `company task list` | Returns filtered task queue/board data. |
+| Logs And Audit | View logs | `company logs --task <task-id>` or `company logs --system` | Retrieves task-scoped or system-scoped logs. |
 | Logs And Audit | View audit events | System audit query action (dashboard audit feed) | Retrieves actor/action/target/timestamp/result evidence records. |
-| Diagnostics / Settings | Run diagnostics | `company-os doctor` | Checks prerequisites/runtime/integrations and returns severity-classified remediation guidance. |
+| Diagnostics / Settings | Run diagnostics | `company doctor` | Checks prerequisites/runtime/integrations and returns severity-classified remediation guidance. |
 | Diagnostics / Settings | Validate notifications/settings | System integration health check surfaced with `doctor` output | Shows Discord configuration and delivery health indicators. |
 
 ## Component Inventory
@@ -147,7 +147,7 @@ Canonical screenshot filenames present under `design/exports/`:
 | Requirement | Where satisfied in this document | Artifact/check |
 | --- | --- | --- |
 | REQ-UX-001 | `Screens List (PRD Required)` + `Screen Specs` | `rg -n "Installation / Onboarding|Operations Dashboard|Task Board / Detail|Logs And Audit|Diagnostics / Settings" docs/design/company-platform-ui.md` |
-| REQ-UX-002 | `REQ-UX-002: Primary UI Action -> CLI/System Mapping` table | `rg -n "REQ-UX-002|CLI/system command|company-os" docs/design/company-platform-ui.md` |
+| REQ-UX-002 | `REQ-UX-002: Primary UI Action -> CLI/System Mapping` table | `rg -n "REQ-UX-002|CLI/system command|company" docs/design/company-platform-ui.md` |
 | REQ-UX-003 | `Screen Specs` and `Component Inventory` | Manual reviewer read of component lists |
 | REQ-UX-004 | `Export Artifacts (REQ-UX-005)` links into `design/exports/` | `ls -lh design/exports/*.png` |
 | REQ-UX-005 | `Export Artifacts (REQ-UX-005)` canonical filenames | `ls -lh design/exports/install-onboarding.png design/exports/operations-dashboard.png design/exports/task-board-detail.png design/exports/logs-audit.png design/exports/diagnostics-settings.png` |
