@@ -4,7 +4,9 @@ Local, installable Company OS for running your AI engineering org like a real op
 
 ## Quick start (MVP)
 
-### 1) Build
+### 1) Backend (Go)
+
+#### Build
 
 ```bash
 go build -o company ./cmd/company
@@ -48,3 +50,14 @@ Check exports are up to date:
 ```bash
 ./scripts/check-design-exports.sh
 ```
+
+### 2) Frontend (React + Vite)
+
+```bash
+cd web
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Then open the Vite URL and ensure the backend API is running at `VITE_API_BASE`.
