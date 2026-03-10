@@ -4,7 +4,9 @@ The UI frames in `design/company-ui.pen` were rendered through Pencil MCP `get_s
 
 In this session, the screenshot tool returned render previews to the client but did not expose filesystem paths or binary output that could be written back into the repo.
 
-The `.png` files in this folder are placeholder files reserved for the expected export paths:
+The `.png` files in this folder are exported screenshots from Pencil.
+
+Canonical filenames (used by docs/reviews):
 - `login.png`
 - `dashboard.png`
 - `agent-registry.png`
