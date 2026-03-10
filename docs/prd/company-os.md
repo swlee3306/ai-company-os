@@ -27,10 +27,36 @@ Current AI-agent workflows are fragmented:
 - Needs high-level status, throughput, risk indicators, and notification hooks.
 - Cares about adoption, operational reliability, and delivery velocity.
 
-### Team Lead / Orchestrator
+### Team Lead / Orchestrator (openclaw)
 - Owns environment setup, cluster driver selection, worker coordination, and exception handling.
+- Converts CEO intent into structured tasks and assigns work across roles.
 - Needs deterministic commands, actionable health checks, and a dashboard that maps directly to CLI actions.
 - Cares about task flow, agent utilization, and recovery from broken states.
+
+### Planner / PM (Product)
+- Translates CEO intent into requirements, scope (in/out), and acceptance criteria.
+- Identifies decision points and edge cases with minimal, high-signal questions.
+- Keeps PRD and delivery plan aligned with what is actually being built.
+
+### Designer (Product UI)
+- Turns PRD outcomes into screen/component design and interaction states.
+- Enforces layout rules (grid/spacing/tokens) and prevents clipping/readability issues.
+- Ensures primary actions remain semantically aligned with CLI/system operations.
+
+### FE Developer (Dashboard / Client)
+- Implements UI behavior and maps primary actions to CLI/system operations.
+- Owns state handling (empty/loading/error), usability, and regression prevention.
+- Keeps changes minimal and consistent with design tokens and component rules.
+
+### BE Developer (CLI / Runtime)
+- Implements command handlers, task state model, logs/audit generation, and notifications.
+- Ensures outputs are evidence-grade (traceable IDs, timestamps, actor/action records).
+- Owns cross-platform execution constraints (dependencies, permissions, driver differences).
+
+### QA (Validation)
+- Defines test scenarios and pass/fail gates across macOS, Linux, and WSL.
+- Validates install/runtime/task flows and checks for regressions.
+- Produces reproducible evidence for failures and verifies fixes.
 
 ### Workers
 - Execute assigned work units and need clear task state, logs, dependencies, and environment readiness.
@@ -39,6 +65,7 @@ Current AI-agent workflows are fragmented:
 ### Reviewer
 - Verifies outputs against task intent and design intent.
 - Needs traceable evidence, audit logs, task lineage, and status visibility without inspecting internals manually.
+- Acts as a release gate: approve or reject based on evidence and acceptance criteria.
 
 ## 4. Goals
 ### Product Goals
