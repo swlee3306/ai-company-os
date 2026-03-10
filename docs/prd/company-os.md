@@ -173,6 +173,16 @@ Acceptance criteria:
 - The PRD and future implementation tasks reference `docs/design/company-platform-ui.md` for UI intent.
 - Verification guidance includes the repository-standard command `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 VERIFY_TIMEOUT_SECONDS=900 ./scripts/verify.sh`.
 
+### 8.7 Service Delivery Loop (Role Negotiation + Iteration)
+**User story:** As an installed user, I can request that the Team Lead build a service (web app, API, automation workflow, or mixed system) so the system coordinates PM, Design, FE, BE, QA, and Reviewer roles through iterative negotiation until the service is delivered.
+
+Acceptance criteria:
+- A service request can be submitted as a structured task with: goal, scope constraints, and a definition of done.
+- The Team Lead can assign roles (PM/Design/FE/BE/QA/Reviewer) to a request, with accountability recorded.
+- The system supports iterative loops: a reviewer rejection can route work back to the appropriate role stage with a reason.
+- The system preserves a decision trail for trade-offs (what was changed, why, and by whom) alongside logs and audit events.
+- Completion produces an evidence bundle referencing requirements, commits/artifacts, test results, and review approval.
+
 ## 9. Functional Requirements
 ### 9.1 CLI Requirements
 - `REQ-CLI-001`: The product shall provide a unified CLI entry point for platform operations.
@@ -190,8 +200,13 @@ Acceptance criteria:
 ### 9.3 Task And Logging Requirements
 - `REQ-TASK-001`: The system shall support task submission, task listing, and task inspection.
 - `REQ-TASK-002`: The system shall persist task state transitions and timestamps.
+- `REQ-TASK-003`: Each task shall support role assignment metadata (PM, Design, FE, BE, QA, Reviewer) and a recorded owner per role.
+- `REQ-TASK-004`: The system shall support a task stage model that enables iteration (e.g., planned → designing → implementing → testing → review → done/rejected).
+- `REQ-TASK-005`: When a task is rejected, the system shall record the rejection reason and route the task back to a prior stage.
 - `REQ-LOG-001`: The system shall expose task logs and system logs.
 - `REQ-LOG-002`: Logs shall be accessible from both CLI and dashboard contexts.
+- `REQ-EVID-001`: Completed tasks shall produce an evidence bundle referencing acceptance criteria, implementation artifacts (commits/build outputs), test results, and review approval.
+- `REQ-DEC-001`: The system shall support a decision/trade-off log linked to a task (who decided, what changed, and why).
 
 ### 9.4 Audit And Notification Requirements
 - `REQ-AUD-001`: Every lifecycle-changing operation shall emit an audit record.
