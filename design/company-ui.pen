@@ -1357,7 +1357,7 @@
                         "fill": "$--border"
                       },
                       "layout": "vertical",
-                      "padding": 24,
+                      "padding": 16,
                       "justifyContent": "center",
                       "children": [
                         {
@@ -1385,8 +1385,8 @@
                         "thickness": 2
                       },
                       "layout": "vertical",
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "justifyContent": "center",
                       "children": [
                         {
@@ -1479,8 +1479,8 @@
                         "align": "inside",
                         "thickness": 1
                       },
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "alignItems": "center"
                     }
                   ]
@@ -1524,7 +1524,7 @@
                         "fill": "$--border"
                       },
                       "layout": "vertical",
-                      "padding": 24,
+                      "padding": 16,
                       "justifyContent": "center",
                       "children": [
                         {
@@ -1552,8 +1552,8 @@
                         "thickness": 2
                       },
                       "layout": "vertical",
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "justifyContent": "center",
                       "children": [
                         {
@@ -1580,8 +1580,8 @@
                         "align": "inside",
                         "thickness": 1
                       },
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "alignItems": "center",
                       "children": [
                         {
@@ -1717,8 +1717,8 @@
                         "thickness": 2
                       },
                       "layout": "vertical",
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "justifyContent": "center",
                       "children": [
                         {
@@ -1758,8 +1758,8 @@
                         "align": "inside",
                         "thickness": 1
                       },
-                      "gap": 8,
-                      "padding": 24,
+                      "gap": 16,
+                      "padding": 16,
                       "justifyContent": "space_between",
                       "children": [
                         {
@@ -2444,7 +2444,7 @@
                             "thickness": 1
                           },
                           "layout": "vertical",
-                          "padding": 24,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -2556,8 +2556,8 @@
                             "thickness": 2
                           },
                           "layout": "vertical",
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center"
                         },
                         {
@@ -2569,8 +2569,8 @@
                             "align": "inside",
                             "thickness": 1
                           },
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "alignItems": "center",
                           "children": [
                             {
@@ -2724,7 +2724,9 @@
             }
           ]
         }
-      ]
+      ],
+      "padding": 32,
+      "gap": 24
     },
     {
       "type": "frame",
@@ -6899,7 +6901,7 @@
                             "thickness": 1
                           },
                           "layout": "vertical",
-                          "padding": 24,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -6958,8 +6960,8 @@
                             "thickness": 2
                           },
                           "layout": "vertical",
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center"
                         },
                         {
@@ -6971,8 +6973,8 @@
                             "align": "inside",
                             "thickness": 1
                           },
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "alignItems": "center",
                           "children": [
                             {
@@ -7153,8 +7155,8 @@
                             "thickness": 1
                           },
                           "layout": "vertical",
-                          "gap": 4,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -7198,8 +7200,8 @@
                             "thickness": 2
                           },
                           "layout": "vertical",
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center"
                         },
                         {
@@ -7211,8 +7213,8 @@
                             "align": "inside",
                             "thickness": 1
                           },
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "alignItems": "center",
                           "children": [
                             {
@@ -7409,7 +7411,7 @@
                             "fill": "$--border"
                           },
                           "layout": "vertical",
-                          "padding": 24,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -7437,8 +7439,8 @@
                             "thickness": 2
                           },
                           "layout": "vertical",
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -7531,8 +7533,8 @@
                             "align": "inside",
                             "thickness": 1
                           },
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "alignItems": "center"
                         }
                       ]
@@ -7572,7 +7574,7 @@
                             "thickness": 1
                           },
                           "layout": "vertical",
-                          "padding": 24,
+                          "padding": 16,
                           "justifyContent": "center",
                           "children": [
                             {
@@ -7684,8 +7686,8 @@
                             "thickness": 2
                           },
                           "layout": "vertical",
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "justifyContent": "center"
                         },
                         {
@@ -7697,8 +7699,8 @@
                             "align": "inside",
                             "thickness": 1
                           },
-                          "gap": 8,
-                          "padding": 24,
+                          "gap": 16,
+                          "padding": 16,
                           "alignItems": "center",
                           "children": [
                             {
@@ -7852,7 +7854,9 @@
             }
           ]
         }
-      ]
+      ],
+      "padding": 32,
+      "gap": 24
     }
   ],
   "themes": {
