@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import './App.css';
-import { getAudit, getDoctor, getStatus, type Status } from './lib/api';
+import { getAudit, getDoctor, getStatus, type Status } from '../lib/api';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -11,7 +10,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function App() {
+export default function Dashboard() {
   const [status, setStatus] = useState<Status | null>(null);
   const [doctor, setDoctor] = useState<any>(null);
   const [audit, setAudit] = useState<string>('');
@@ -34,11 +33,13 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: 24, fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif' }}>
+    <div style={{ maxWidth: 1100 }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
-          <h1 style={{ margin: 0 }}>AI Company OS</h1>
-          <p style={{ margin: '6px 0 0 0', color: '#6b7280' }}>Dashboard (MVP skeleton)</p>
+          <h1 style={{ margin: 0 }}>Operational Dashboard</h1>
+          <p style={{ margin: '6px 0 0 0', color: '#6b7280' }}>
+            Monitor project load, agent health, approvals, and execution cost across the company.
+          </p>
         </div>
         <button onClick={refresh} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: 'white' }}>
           Refresh
