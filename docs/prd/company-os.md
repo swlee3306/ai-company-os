@@ -101,6 +101,16 @@ Current AI-agent workflows are fragmented:
 4. Evidence over assumptions: audit logs, task logs, and health checks must be preserved and attributable.
 5. Cross-platform parity: user intent should not change across supported host environments.
 
+## 6.1 Default Role Tooling And Outputs
+Unless explicitly overridden by the installed user or Team Lead, the system follows these defaults:
+
+- Planner / PM: produces Markdown artifacts (requirements, scope, acceptance criteria, open questions, risks/trade-offs).
+- Designer: uses Pencil (`pencil.dev` MCP) as the default design toolchain and maintains `.pen` source + exported PNG artifacts.
+- FE Developer: defaults to TypeScript; framework choice should follow modern conventions (React + Vite by default) unless specified otherwise.
+- BE Developer: defaults to TypeScript (Node.js) for stack consistency; alternative languages/frameworks are allowed when specified.
+- QA: executes unit → integration → (where feasible) E2E validation and produces a reproducible evidence trail.
+- Reviewer: confirms alignment across PRD intent, design intent, implementation, and QA evidence; approves or rejects with a recorded reason.
+
 ## 7. Scope
 ### In Scope
 - CLI lifecycle commands: `install`, `up`, `down`, `status`, `task`, `logs`, `doctor`
