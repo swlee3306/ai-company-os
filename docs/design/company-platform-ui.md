@@ -141,7 +141,7 @@ Canonical screenshot filenames present under `design/exports/`:
 ## Traceability
 ### Task Reference
 - Task summary: Fix design doc alignment with PRD required screens, add export filename compliance, and add CLI action mapping.
-- Source review decision: `REVIEW_DECISION.json` (decision=`reject`, required fixes applied here).
+- Source review decision: Prior reviewer decision was `reject`; this revision applies the requested screen alignment, CLI mapping, and canonical export naming fixes.
 
 ### Requirement Mapping (Reviewer Checkpoints)
 | Requirement | Where satisfied in this document | Artifact/check |
@@ -149,6 +149,6 @@ Canonical screenshot filenames present under `design/exports/`:
 | REQ-UX-001 | `Screens List (PRD Required)` + `Screen Specs` | `rg -n "Installation / Onboarding|Operations Dashboard|Task Board / Detail|Logs And Audit|Diagnostics / Settings" docs/design/company-platform-ui.md` |
 | REQ-UX-002 | `REQ-UX-002: Primary UI Action -> CLI/System Mapping` table | `rg -n "REQ-UX-002|CLI/system command|company" docs/design/company-platform-ui.md` |
 | REQ-UX-003 | `Screen Specs` and `Component Inventory` | Manual reviewer read of component lists |
-| REQ-UX-004 | `Export Artifacts (REQ-UX-005)` links into `design/exports/` | `ls -lh design/exports/*.png` |
+| REQ-UX-004 | `Interaction States` + `Responsive Rules` | `rg -n "## Interaction States|## Responsive Rules" docs/design/company-platform-ui.md` |
 | REQ-UX-005 | `Export Artifacts (REQ-UX-005)` canonical filenames | `ls -lh design/exports/install-onboarding.png design/exports/operations-dashboard.png design/exports/task-board-detail.png design/exports/logs-audit.png design/exports/diagnostics-settings.png` |
-| REQ-UX-006 | Not required because canonical filenames are provided | N/A |
+| REQ-UX-006 | `Export Artifacts (REQ-UX-005)` links resolve to repository exports | Manual link check in markdown preview |
