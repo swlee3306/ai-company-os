@@ -2,6 +2,7 @@
 
 Design source artifacts:
 - [Pencil board (`company-ui.pen`)](../../design/company-ui.pen)
+- `design/app.pen` is currently an unused placeholder (may be removed or populated later).
 - [Export folder](../../design/exports/)
 
 ## Goals

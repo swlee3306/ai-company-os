@@ -6,7 +6,7 @@
 - Status: Draft for design and implementation alignment
 - Last updated: 2026-03-10
 - Related design spec: `docs/design/company-platform-ui.md` (required companion document)
-- Related design artifacts: `design/company-ui.pen`, `design/app.pen`, `design/exports/`
+- Related design artifacts: `design/company-ui.pen`, `design/exports/` (`design/app.pen` is currently an unused placeholder)
 
 ## 1. Product Summary
 AI Dev Company OS is an installable dev-company platform that runs with one operating model across macOS, Linux, and WSL. It combines a local/company CLI, an operational dashboard, and runtime drivers so a CEO, orchestrator, workers, and reviewers can install, launch, monitor, and audit AI-assisted software delivery with the same concepts, commands, and evidence trail on every supported environment.

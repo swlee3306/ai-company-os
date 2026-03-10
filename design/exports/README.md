@@ -6,6 +6,9 @@ In this session, the screenshot tool returned render previews to the client but 
 
 The `.png` files in this folder are exported screenshots from Pencil.
 
+Re-export note:
+- If `design/company-ui.pen` is updated (layout spacing, card sizes, etc.), re-export the canonical screenshots below so they reflect the latest `.pen` source.
+
 PRD-required canonical filenames:
 - `install-onboarding.png`
 - `operations-dashboard.png`
