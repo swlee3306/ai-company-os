@@ -1,0 +1,376 @@
+{
+  "version": "1.0",
+  "children": [
+    {
+      "id": "screen-install",
+      "type": "frame",
+      "name": "Installation / Onboarding",
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 1024,
+      "layout": "vertical",
+      "padding": 32,
+      "gap": 24,
+      "children": [
+        {
+          "id": "install-header",
+          "type": "frame",
+          "name": "Header Row",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "gap": 16,
+          "children": [
+            {
+              "id": "install-title",
+              "type": "text",
+              "content": "Installation / Onboarding",
+              "fill": "#111827"
+            },
+            {
+              "id": "install-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "height": 32,
+              "children": [
+                { "id": "install-btn-secondary", "type": "frame", "width": 120, "height": 32, "padding": 16 },
+                { "id": "install-btn-primary", "type": "frame", "width": 120, "height": 32, "padding": 16 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "install-grid",
+          "type": "frame",
+          "name": "Content Grid",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "id": "install-col-left",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "install-card-prereq", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "install-card-driver", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            },
+            {
+              "id": "install-col-right",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "install-card-progress", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "install-card-next", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "screen-ops",
+      "type": "frame",
+      "name": "Operations Dashboard",
+      "x": 1600,
+      "y": 0,
+      "width": 1440,
+      "height": 1024,
+      "layout": "vertical",
+      "padding": 32,
+      "gap": 24,
+      "children": [
+        {
+          "id": "ops-header",
+          "type": "frame",
+          "name": "Header Row",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "gap": 16,
+          "children": [
+            { "id": "ops-title", "type": "text", "content": "Operations Dashboard", "fill": "#111827" },
+            {
+              "id": "ops-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "height": 32,
+              "children": [
+                { "id": "ops-btn-secondary", "type": "frame", "width": 120, "height": 32, "padding": 16 },
+                { "id": "ops-btn-primary", "type": "frame", "width": 120, "height": 32, "padding": 16 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "ops-grid",
+          "type": "frame",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "id": "ops-col-left",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "ops-card-summary", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "ops-card-lifecycle", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            },
+            {
+              "id": "ops-col-right",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "ops-card-health", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "ops-card-audit", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "screen-task",
+      "type": "frame",
+      "name": "Task Board / Detail",
+      "x": 3200,
+      "y": 0,
+      "width": 1440,
+      "height": 1024,
+      "layout": "vertical",
+      "padding": 32,
+      "gap": 24,
+      "children": [
+        {
+          "id": "task-header",
+          "type": "frame",
+          "name": "Header Row",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "gap": 16,
+          "children": [
+            { "id": "task-title", "type": "text", "content": "Task Board / Detail", "fill": "#111827" },
+            {
+              "id": "task-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "height": 32,
+              "children": [
+                { "id": "task-btn-secondary", "type": "frame", "width": 120, "height": 32, "padding": 16 },
+                { "id": "task-btn-primary", "type": "frame", "width": 120, "height": 32, "padding": 16 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "task-grid",
+          "type": "frame",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "id": "task-col-left",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "task-card-board", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "task-card-queue", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            },
+            {
+              "id": "task-col-right",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "task-card-detail", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "task-card-log", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "screen-logs",
+      "type": "frame",
+      "name": "Logs And Audit",
+      "x": 0,
+      "y": 1160,
+      "width": 1440,
+      "height": 1024,
+      "layout": "vertical",
+      "padding": 32,
+      "gap": 24,
+      "children": [
+        {
+          "id": "logs-header",
+          "type": "frame",
+          "name": "Header Row",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "gap": 16,
+          "children": [
+            { "id": "logs-title", "type": "text", "content": "Logs And Audit", "fill": "#111827" },
+            {
+              "id": "logs-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "height": 32,
+              "children": [
+                { "id": "logs-btn-secondary", "type": "frame", "width": 120, "height": 32, "padding": 16 },
+                { "id": "logs-btn-primary", "type": "frame", "width": 120, "height": 32, "padding": 16 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "logs-grid",
+          "type": "frame",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "id": "logs-col-left",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "logs-card-filter", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "logs-card-viewer", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            },
+            {
+              "id": "logs-col-right",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "logs-card-audit", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "logs-card-event", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "screen-diagnostics",
+      "type": "frame",
+      "name": "Diagnostics / Settings",
+      "x": 1600,
+      "y": 1160,
+      "width": 1440,
+      "height": 1024,
+      "layout": "vertical",
+      "padding": 32,
+      "gap": 24,
+      "children": [
+        {
+          "id": "diag-header",
+          "type": "frame",
+          "name": "Header Row",
+          "width": "fill_container",
+          "height": 48,
+          "layout": "horizontal",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "gap": 16,
+          "children": [
+            { "id": "diag-title", "type": "text", "content": "Diagnostics / Settings", "fill": "#111827" },
+            {
+              "id": "diag-actions",
+              "type": "frame",
+              "layout": "horizontal",
+              "gap": 16,
+              "height": 32,
+              "children": [
+                { "id": "diag-btn-secondary", "type": "frame", "width": 120, "height": 32, "padding": 16 },
+                { "id": "diag-btn-primary", "type": "frame", "width": 120, "height": 32, "padding": 16 }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "diag-grid",
+          "type": "frame",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "horizontal",
+          "gap": 16,
+          "children": [
+            {
+              "id": "diag-col-left",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "diag-card-summary", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "diag-card-findings", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            },
+            {
+              "id": "diag-col-right",
+              "type": "frame",
+              "width": 680,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                { "id": "diag-card-integration", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 },
+                { "id": "diag-card-settings", "type": "frame", "height": 224, "width": "fill_container", "layout": "vertical", "padding": 16, "gap": 16 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

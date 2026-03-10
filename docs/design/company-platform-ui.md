@@ -129,6 +129,7 @@ Across all screens, the minimum interaction states are defined and represented:
 - Column gutters are equalized at 16px across each two-column screen composition.
 - Header rows are normalized to a shared height and spacing pattern; action button containers and button heights are aligned to keep button baselines consistent.
 - Off-by-1 spacing and uneven vertical rhythm are removed by enforcing shared constants (`32 / 24 / 16`) and 8pt multiples across screen layouts.
+- Applied consistently to: Installation / Onboarding, Operations Dashboard, Task Board / Detail, Logs And Audit, and Diagnostics / Settings.
 
 ## Design Tokens
 No new token system is introduced in this revision. Existing Pencil design tokens/styles from `design/company-ui.pen` are reused.
