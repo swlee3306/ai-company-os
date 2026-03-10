@@ -1,43 +1,154 @@
 # Company Platform UI
 
-Design source: `design/company-ui.pen`
+Design source artifacts:
+- [Pencil board (`company-ui.pen`)](../../design/company-ui.pen)
+- [Export folder](../../design/exports/)
 
-The five required frames were created in the Pencil document:
-- `Login`
-- `Dashboard`
-- `Agent Registry`
-- `Task Board`
-- `Approval Center`
+## Goals
+- Provide a five-screen UI spec aligned to PRD Section 10 for install, operations, tasks, logs/audit, and diagnostics/settings.
+- Keep dashboard actions semantically aligned with CLI/system operations (`install`, `up`, `down`, `status`, `task`, `logs`, `doctor`).
+- Ensure exported design artifacts are reviewable from repository paths and filename-compliant with PRD `REQ-UX-005`.
 
-PNG export paths:
-- [Login](../../design/exports/login.png)
-- [Dashboard](../../design/exports/dashboard.png)
-- [Agent Registry](../../design/exports/agent-registry.png)
-- [Task Board](../../design/exports/task-board.png)
-- [Approval Center](../../design/exports/approval-center.png)
+## Non-Goals
+- Define backend implementation details for command handlers, persistence schema, or notification transport internals.
+- Replace CLI flows; this spec mirrors CLI/system semantics in UI form.
+- Specify enterprise IAM/RBAC or non-Discord notification providers for this phase.
 
-Notes:
+## User Flows
+1. Team Lead opens **Installation / Onboarding**, validates prerequisites, confirms driver (`k3d` default or `k3s`), runs install, then transitions to operations.
+2. Team Lead or CEO uses **Operations Dashboard** to start/stop runtime (`up`/`down`) and inspect current platform state (`status`).
+3. Orchestrator/Worker uses **Task Board / Detail** to submit tasks, track state transitions, and inspect task details/log previews.
+4. Reviewer/Operator uses **Logs And Audit** to filter and inspect system logs, task logs, and audit events.
+5. Team Lead uses **Diagnostics / Settings** to run diagnostics (`doctor`), review remediation guidance, and verify integration/settings health.
 
-## Login
-- States: default sign-in state with SSO primary action and backup-code secondary action.
-- Components: card shell, input groups, info alert, status labels, primary and outline buttons.
+## Screens List (PRD Required)
+1. **Installation / Onboarding**  
+   Artifact: [install-onboarding.png](../../design/exports/install-onboarding.png)
+2. **Operations Dashboard**  
+   Artifact: [operations-dashboard.png](../../design/exports/operations-dashboard.png)
+3. **Task Board / Detail**  
+   Artifact: [task-board-detail.png](../../design/exports/task-board-detail.png)
+4. **Logs And Audit**  
+   Artifact: [logs-audit.png](../../design/exports/logs-audit.png)
+5. **Diagnostics / Settings**  
+   Artifact: [diagnostics-settings.png](../../design/exports/diagnostics-settings.png)
 
-## Dashboard
-- States: overview state with metrics, active navigation, action toolbar, warning context, and a detail rail.
-- Components: sidebar, metric cards, action card, image card, data table, warning alert, confirmation modal.
+## Screen Specs
+### Installation / Onboarding
+- Purpose: first-run setup and prerequisite validation across macOS, Linux, WSL.
+- Components: prerequisite checklist, driver selector (`k3d` default, `k3s` optional), install progress/state panel, next-step CTA.
+- Key states:
+  - Empty: no install started; prerequisites pending.
+  - Loading: install/probe in progress with streamed step status.
+  - Error: prerequisite or install failure with remediation guidance.
 
-## Agent Registry
-- States: searchable index state with registration CTA and a policy-review notice on the side rail.
-- Components: sidebar, search box, primary button, data table, info alert, image card, action card.
+### Operations Dashboard
+- Purpose: operational control plane for runtime health and lifecycle.
+- Components: system summary cards, lifecycle action bar, incident/status banner, worker/runtime status panel, audit/notification status summary.
+- Key states:
+  - Empty: no active runtime; prompt to run `up`.
+  - Loading: status refresh underway.
+  - Error: runtime degraded/down with surfaced incident context.
 
-## Task Board
-- States: kanban-style flow across queued, running, and blocked work, with blocked items elevated visually.
-- Components: sidebar, tabs, primary button, card variants, warning/error alert, modal card.
+### Task Board / Detail
+- Purpose: task submission, queue visibility, and deep task inspection.
+- Components: task board/list, task detail drawer/panel, status timeline, log preview, audit linkage block.
+- Key states:
+  - Empty: no queued/running tasks.
+  - Loading: task list/detail refresh or submit in progress.
+  - Error: failed task or unavailable task/log payload.
 
-## Approval Center
-- States: reviewer workspace with queue filtering, warning banner, stacked approval items, and side summary.
-- Components: sidebar, search box, outline button, warning alert, dialog card, center modal, summary card.
+### Logs And Audit
+- Purpose: investigation workspace with clear evidence chain.
+- Components: filter controls (actor/task/severity/time), log viewer (task/system), audit event table, event detail panel.
+- Key states:
+  - Empty: no records in selected filter scope.
+  - Loading: log/audit query in progress.
+  - Error: log backend unavailable or filter query failed.
 
-Export note:
-- Screens were exported from Pencil as a ZIP and extracted into `design/exports/`.
-- The linked PNG files now point to the exported images on disk.
+### Diagnostics / Settings
+- Purpose: diagnose and recover environment/runtime issues; maintain operational settings.
+- Components: diagnostic summary panel, findings list (severity + remediation), integration status section (Discord/audit retention), environment/settings form.
+- Key states:
+  - Empty: no diagnostic run yet.
+  - Loading: `doctor` execution in progress.
+  - Error: diagnostics command failure or stale/unavailable health data.
+
+## REQ-UX-002: Primary UI Action -> CLI/System Mapping
+| Screen | Primary UI action | CLI/system command | Expected system effect |
+| --- | --- | --- | --- |
+| Installation / Onboarding | Run install | `company-os install` | Validates prerequisites, applies driver config, bootstraps platform, emits install audit record. |
+| Installation / Onboarding | Select driver | System config action (`driver=k3d` default or `driver=k3s`) used by `install`/runtime | Persists runtime driver selection surfaced later by `status`. |
+| Operations Dashboard | Start platform | `company-os up` | Starts runtime services and updates health/incident status. |
+| Operations Dashboard | Stop platform | `company-os down` | Stops runtime services cleanly and records lifecycle event. |
+| Operations Dashboard | Refresh status | `company-os status` | Returns driver, health, queue, and issue summary for dashboard cards/banner. |
+| Task Board / Detail | Submit task | `company-os task submit` | Creates queued task with ID and initial audit/log trail. |
+| Task Board / Detail | Inspect task | `company-os task inspect <task-id>` | Returns task metadata, owner/state timeline, and linked evidence. |
+| Task Board / Detail | List tasks | `company-os task list` | Returns filtered task queue/board data. |
+| Logs And Audit | View logs | `company-os logs --task <task-id>` or `company-os logs --system` | Retrieves task-scoped or system-scoped logs. |
+| Logs And Audit | View audit events | System audit query action (dashboard audit feed) | Retrieves actor/action/target/timestamp/result evidence records. |
+| Diagnostics / Settings | Run diagnostics | `company-os doctor` | Checks prerequisites/runtime/integrations and returns severity-classified remediation guidance. |
+| Diagnostics / Settings | Validate notifications/settings | System integration health check surfaced with `doctor` output | Shows Discord configuration and delivery health indicators. |
+
+## Component Inventory
+- Prerequisite checklist
+- Driver selector
+- Progress/state panel
+- Next-step CTA/action strip
+- Summary metric cards
+- Lifecycle action bar
+- Incident/status banner
+- Worker/runtime status panel
+- Task board/list and task cards
+- Task detail drawer/panel
+- Status timeline
+- Log preview/log viewer
+- Filter controls
+- Audit table and event detail panel
+- Diagnostic summary and findings list
+- Integration status panel
+- Environment/settings form
+
+## Interaction States
+Across all screens, the minimum interaction states are defined and represented:
+- Empty: first-run or no-data condition with recovery CTA.
+- Loading: command/query in progress with explicit activity indicator/progress messaging.
+- Error: actionable failure state with remediation guidance and retry path.
+
+## Responsive Rules
+- Desktop (>= 1200 px): two-rail layouts are allowed (primary content + side detail panel).
+- Tablet (768 px to 1199 px): collapse secondary panels into tabs/stacked sections.
+- Mobile (< 768 px): single-column flow; action bar becomes sticky bottom/top action group; tables convert to stacked cards with key-value rows.
+
+## Design Tokens
+No new token system is introduced in this revision. Existing Pencil design tokens/styles from `design/company-ui.pen` are reused.
+
+## Export Artifacts (REQ-UX-005)
+Canonical screenshot filenames present under `design/exports/`:
+- [install-onboarding.png](../../design/exports/install-onboarding.png)
+- [operations-dashboard.png](../../design/exports/operations-dashboard.png)
+- [task-board-detail.png](../../design/exports/task-board-detail.png)
+- [logs-audit.png](../../design/exports/logs-audit.png)
+- [diagnostics-settings.png](../../design/exports/diagnostics-settings.png)
+
+## Acceptance Criteria Checklist
+- [x] Design spec covers all five PRD-required screens.
+- [x] Primary UI actions map to CLI/system actions (`REQ-UX-002`).
+- [x] Canonical export filenames required by `REQ-UX-005` are present under `design/exports/`.
+- [x] Components and interaction states are specified for each screen.
+- [x] Responsive behavior expectations are documented.
+
+## Traceability
+### Task Reference
+- Task summary: Fix design doc alignment with PRD required screens, add export filename compliance, and add CLI action mapping.
+- Source review decision: `REVIEW_DECISION.json` (decision=`reject`, required fixes applied here).
+
+### Requirement Mapping (Reviewer Checkpoints)
+| Requirement | Where satisfied in this document | Artifact/check |
+| --- | --- | --- |
+| REQ-UX-001 | `Screens List (PRD Required)` + `Screen Specs` | `rg -n "Installation / Onboarding|Operations Dashboard|Task Board / Detail|Logs And Audit|Diagnostics / Settings" docs/design/company-platform-ui.md` |
+| REQ-UX-002 | `REQ-UX-002: Primary UI Action -> CLI/System Mapping` table | `rg -n "REQ-UX-002|CLI/system command|company-os" docs/design/company-platform-ui.md` |
+| REQ-UX-003 | `Screen Specs` and `Component Inventory` | Manual reviewer read of component lists |
+| REQ-UX-004 | `Export Artifacts (REQ-UX-005)` links into `design/exports/` | `ls -lh design/exports/*.png` |
+| REQ-UX-005 | `Export Artifacts (REQ-UX-005)` canonical filenames | `ls -lh design/exports/install-onboarding.png design/exports/operations-dashboard.png design/exports/task-board-detail.png design/exports/logs-audit.png design/exports/diagnostics-settings.png` |
+| REQ-UX-006 | Not required because canonical filenames are provided | N/A |

@@ -6,9 +6,16 @@ In this session, the screenshot tool returned render previews to the client but 
 
 The `.png` files in this folder are exported screenshots from Pencil.
 
-Canonical filenames (used by docs/reviews):
+PRD-required canonical filenames:
+- `install-onboarding.png`
+- `operations-dashboard.png`
+- `task-board-detail.png`
+- `logs-audit.png`
+- `diagnostics-settings.png`
+
+Legacy export filenames are kept for traceability of the original Pencil export batch:
 - `login.png`
 - `dashboard.png`
-- `agent-registry.png`
 - `task-board.png`
+- `agent-registry.png`
 - `approval-center.png`
