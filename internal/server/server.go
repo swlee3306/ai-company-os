@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/swlee3306/ai-company-os/internal/driver"
+
 	"github.com/gin-gonic/gin"
 
 	"github.com/swlee3306/ai-company-os/internal/audit"
@@ -36,7 +38,11 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		c.Data(200, "application/json", b)
+		base := map[string]any{}
+		_ = json.Unmarshal(b, &base)
+		base["driver"] = driver.CheckAll()
+		out, _ := json.MarshalIndent(base, "", "  ")
+		c.Data(200, "application/json", out)
 	})
 
 	api.GET("/audit", func(c *gin.Context) {
