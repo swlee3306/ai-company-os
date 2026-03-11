@@ -9,6 +9,7 @@ const navItems = [
   { to: '/approvals', label: 'Approvals' },
   { to: '/artifacts', label: 'Artifacts' },
   { to: '/audit-logs', label: 'Audit Logs' },
+  { to: '/runs', label: 'Runs' },
   { to: '/settings', label: 'Settings' },
 ];
 
