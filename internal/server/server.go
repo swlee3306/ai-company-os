@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -66,6 +67,27 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 		c.Data(200, "application/json", b)
 	})
 
+	api.GET("/agents/:id", func(c *gin.Context) {
+		au.Emit("api", "agents.get", map[string]any{"id": c.Param("id")})
+		b, err := st.ReadAgents()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		var arr []map[string]any
+		if err := json.Unmarshal(b, &arr); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		for _, it := range arr {
+			if it["id"] == c.Param("id") {
+				c.JSON(200, it)
+				return
+			}
+		}
+		c.JSON(404, gin.H{"error": "not found"})
+	})
+
 	api.GET("/projects", func(c *gin.Context) {
 		au.Emit("api", "projects.list", nil)
 		b, err := st.ReadProjects()
@@ -76,6 +98,27 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 		c.Data(200, "application/json", b)
 	})
 
+	api.GET("/projects/:id", func(c *gin.Context) {
+		au.Emit("api", "projects.get", map[string]any{"id": c.Param("id")})
+		b, err := st.ReadProjects()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		var arr []map[string]any
+		if err := json.Unmarshal(b, &arr); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		for _, it := range arr {
+			if it["id"] == c.Param("id") {
+				c.JSON(200, it)
+				return
+			}
+		}
+		c.JSON(404, gin.H{"error": "not found"})
+	})
+
 	api.GET("/approvals", func(c *gin.Context) {
 		au.Emit("api", "approvals.list", nil)
 		b, err := st.ReadApprovals()
@@ -84,6 +127,27 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 			return
 		}
 		c.Data(200, "application/json", b)
+	})
+
+	api.GET("/approvals/:id", func(c *gin.Context) {
+		au.Emit("api", "approvals.get", map[string]any{"id": c.Param("id")})
+		b, err := st.ReadApprovals()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		var arr []map[string]any
+		if err := json.Unmarshal(b, &arr); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		for _, it := range arr {
+			if it["id"] == c.Param("id") {
+				c.JSON(200, it)
+				return
+			}
+		}
+		c.JSON(404, gin.H{"error": "not found"})
 	})
 
 	return r.Run(addr)
