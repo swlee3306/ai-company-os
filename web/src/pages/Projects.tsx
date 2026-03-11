@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { listProjects, type Project } from '../lib/api';
 
 export default function Projects() {
@@ -28,14 +29,20 @@ export default function Projects() {
       {data === null ? (
         <div>Loading…</div>
       ) : data.length === 0 ? (
-        <div>No projects yet. Run <code>company seed</code> to add demo projects.</div>
+        <div>
+          No projects yet. Run <code>company seed</code> to add demo projects.
+        </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 12 }}>
           {data.map((p) => (
             <div key={p.id} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: 'white' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                 <div>
-                  <div style={{ fontWeight: 700 }}>{p.name}</div>
+                  <div style={{ fontWeight: 700 }}>
+                    <Link to={`/projects/${p.id}`} style={{ color: '#111827', textDecoration: 'none' }}>
+                      {p.name}
+                    </Link>
+                  </div>
                   <div style={{ color: '#6b7280', fontSize: 12 }}>{p.id}</div>
                 </div>
                 <div style={{ fontSize: 12, color: '#6b7280' }}>{p.status}</div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { listAgents, type Agent } from '../lib/api';
 
 export default function Agents() {
@@ -28,7 +29,9 @@ export default function Agents() {
       {data === null ? (
         <div>Loading…</div>
       ) : data.length === 0 ? (
-        <div>No agents yet. Run <code>company seed</code> to add demo agents.</div>
+        <div>
+          No agents yet. Run <code>company seed</code> to add demo agents.
+        </div>
       ) : (
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
@@ -38,7 +41,12 @@ export default function Agents() {
             <div key={a.id} style={{ padding: 12, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
                 <div>
-                  <strong>{a.name}</strong> {a.ops_specialty ? <span style={{ color: '#6b7280' }}>({a.ops_specialty})</span> : null}
+                  <strong>
+                    <Link to={`/agents/${a.id}`} style={{ color: '#111827', textDecoration: 'none' }}>
+                      {a.name}
+                    </Link>
+                  </strong>{' '}
+                  {a.ops_specialty ? <span style={{ color: '#6b7280' }}>({a.ops_specialty})</span> : null}
                 </div>
                 <div style={{ color: '#6b7280', fontSize: 12 }}>
                   {a.persona_role} / {a.status} / {(a.scope || []).join(', ')} / {a.version}
