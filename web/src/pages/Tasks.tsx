@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { createTask, listTasks, transitionTask, type Task } from '../lib/api';
 
 const states = ['draft', 'planned', 'assigned', 'running', 'reviewing', 'done', 'blocked'];
@@ -71,7 +72,9 @@ export default function Tasks() {
           {data.map((t) => (
             <div key={t.id} style={{ padding: 12, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
               <div>
-                <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{t.id}</div>
+                <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+                  <Link to={`/tasks/${t.id}`} style={{ color: '#111827', textDecoration: 'none' }}>{t.id}</Link>
+                </div>
                 <div style={{ fontWeight: 700 }}>{t.title}</div>
                 <div style={{ color: '#6b7280', fontSize: 12 }}>state: {t.state}</div>
               </div>
