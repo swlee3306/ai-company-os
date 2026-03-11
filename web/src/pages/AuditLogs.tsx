@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getAudit } from '../lib/api';
+import { color, font, radius, space } from '../ui/tokens';
 
 type AuditEntry = {
   ts?: string;
@@ -57,31 +58,31 @@ export default function AuditLogs() {
   return (
     <div style={{ maxWidth: 1100 }}>
       <h1 style={{ marginTop: 0 }}>Audit Logs</h1>
-      <p style={{ color: '#6b7280' }}>Filter by actor/action (MVP). Detail view comes later.</p>
+      <p style={{ color: color.text.muted }}>Filter by actor/action (MVP). Detail view comes later.</p>
 
       <div style={{ marginBottom: 12 }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search actor/action/fields…"
-          style={{ width: '100%', maxWidth: 420, padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
+          style={{ width: '100%', maxWidth: 420, padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}` }}
         />
       </div>
 
       {error ? (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 16 }}>{error}</div>
+        <div style={{ background: color.bg.danger, border: `1px solid ${color.border.danger}`, color: color.text.danger, padding: space.row, borderRadius: radius.card, marginBottom: space.card }}>{error}</div>
       ) : null}
 
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-        <div style={{ padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, overflow: 'hidden' }}>
+        <div style={{ padding: 12, fontFamily: font.mono, fontSize: 12, color: color.text.muted, borderBottom: `1px solid ${color.border.default}` }}>
           ts / actor / action
         </div>
         {entries.length === 0 ? (
-          <div style={{ padding: 12 }}>No audit entries found.</div>
+          <div style={{ padding: 12, color: color.text.muted }}>No audit entries found.</div>
         ) : (
           entries.map((e, idx) => (
-            <div key={idx} style={{ padding: 12, borderBottom: '1px solid #f3f4f6', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12 }}>
-              <span style={{ color: '#6b7280' }}>{e.ts ?? '-'}</span> / <span>{e.actor ?? '-'}</span> / <span>{e.action ?? '-'}</span>
+            <div key={idx} style={{ padding: 12, borderBottom: `1px solid ${color.border.subtle}`, fontFamily: font.mono, fontSize: 12 }}>
+              <span style={{ color: color.text.muted }}>{e.ts ?? '-'}</span> / <span>{e.actor ?? '-'}</span> / <span>{e.action ?? '-'}</span>
             </div>
           ))
         )}
