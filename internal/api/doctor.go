@@ -29,7 +29,7 @@ func init() {
 					{"name": "filesystem", "status": "ok"},
 					{"name": "network", "status": "ok"},
 				},
-				"driver": driver.CheckAll(),
+				"driver": driver.CheckAll(readSelectedDriver(st)),
 			}
 			b, _ := json.Marshal(res)
 			if err := st.WriteDoctor(b); err != nil {

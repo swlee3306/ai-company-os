@@ -20,7 +20,7 @@ func init() {
 			au := audit.NewFileAudit(st)
 			au.Emit("cli", "driver.check", nil)
 
-			res := driver.CheckAll()
+			res := driver.CheckAll(readSelectedDriver(st))
 			b, _ := json.MarshalIndent(map[string]any{"driver": res}, "", "  ")
 			return st.WriteState(b)
 		},
