@@ -136,3 +136,11 @@ func (s *FileStore) ReadTasks() ([]byte, error) {
 func (s *FileStore) WriteTasks(b []byte) error {
 	return s.writeJSON("tasks.json", b)
 }
+
+func (s *FileStore) ReadArtifacts() ([]byte, error) {
+	return s.readJSONOrDefault("artifacts.json", "[]")
+}
+
+func (s *FileStore) WriteArtifacts(b []byte) error {
+	return s.writeJSON("artifacts.json", b)
+}
