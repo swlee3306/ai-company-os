@@ -26,7 +26,7 @@ func init() {
 				_ = json.Unmarshal(b, &base)
 			}
 
-			base["driver"] = driver.CheckAll()
+			base["driver"] = driver.CheckAll(readSelectedDriver(st))
 
 			out, _ := json.MarshalIndent(base, "", "  ")
 			fmt.Println(string(out))

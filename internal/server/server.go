@@ -32,6 +32,7 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 	registerEvidenceRoutes(api, st, au)
 	registerTaskRoutes(api, st, au)
 	registerArtifactRoutes(api, st, au)
+	registerSettingsRoutes(api, st, au)
 	api.GET("/status", func(c *gin.Context) {
 		au.Emit("api", "status.get", nil)
 		b, err := st.ReadState()
@@ -41,7 +42,7 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 		}
 		base := map[string]any{}
 		_ = json.Unmarshal(b, &base)
-		base["driver"] = driver.CheckAll()
+		base["driver"] = driver.CheckAll("k3d")
 		out, _ := json.MarshalIndent(base, "", "  ")
 		c.Data(200, "application/json", out)
 	})
