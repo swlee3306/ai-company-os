@@ -146,7 +146,7 @@ func (s *FileStore) WriteArtifacts(b []byte) error {
 }
 
 func (s *FileStore) ReadSettings() ([]byte, error) {
-	return s.readJSONOrDefault("settings.json", "{\"driver\":{\"selected\":\"k3d\"},\"approval\":{\"policy_text\":\"HIGH: prod deploy / secrets / cluster admin requires approval.\"},\"runner\":{\"backend\":\"local_cli\",\"type\":\"codex_cli\",\"command\":\"codex\",\"workdir\":\"\",\"agents\":{\"pm\":\"\",\"fe\":\"\",\"be\":\"\",\"qa\":\"\",\"reviewer\":\"\"}}}")
+	return s.readJSONOrDefault("settings.json", "{\"driver\":{\"selected\":\"k3d\"},\"approval\":{\"policy_text\":\"HIGH: prod deploy / secrets / cluster admin requires approval.\"},\"workspace\":{\"repo_path\":\"\"},\"runner\":{\"backend\":\"local_cli\",\"type\":\"codex_cli\",\"command\":\"codex\",\"workdir\":\"\",\"agents\":{\"pm\":\"\",\"fe\":\"\",\"be\":\"\",\"qa\":\"\",\"reviewer\":\"\"}}}")
 }
 
 func (s *FileStore) WriteSettings(b []byte) error {

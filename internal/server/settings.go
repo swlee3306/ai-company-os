@@ -16,6 +16,9 @@ type settingsObj struct {
 	Approval struct {
 		PolicyText string `json:"policy_text"`
 	} `json:"approval"`
+	Workspace struct {
+		RepoPath string `json:"repo_path"`
+	} `json:"workspace"`
 	Runner struct {
 		Backend string `json:"backend"`
 		Type    string `json:"type"`
