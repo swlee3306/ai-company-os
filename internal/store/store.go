@@ -144,3 +144,11 @@ func (s *FileStore) ReadArtifacts() ([]byte, error) {
 func (s *FileStore) WriteArtifacts(b []byte) error {
 	return s.writeJSON("artifacts.json", b)
 }
+
+func (s *FileStore) ReadSettings() ([]byte, error) {
+	return s.readJSONOrDefault("settings.json", "{\"driver\":{\"selected\":\"k3d\"},\"approval\":{\"policy_text\":\"HIGH: prod deploy / secrets / cluster admin requires approval.\"}}")
+}
+
+func (s *FileStore) WriteSettings(b []byte) error {
+	return s.writeJSON("settings.json", b)
+}

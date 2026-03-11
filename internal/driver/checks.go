@@ -21,8 +21,11 @@ type DriverStatus struct {
 	Checks          []Check `json:"checks"`
 }
 
-func CheckAll() DriverStatus {
-	st := DriverStatus{Selected: "k3d"}
+func CheckAll(selected string) DriverStatus {
+	if selected == "" {
+		selected = "k3d"
+	}
+	st := DriverStatus{Selected: selected}
 
 	daemonOK, daemonDetail := DockerDaemonOK()
 	st.Docker = daemonOK
@@ -30,6 +33,12 @@ func CheckAll() DriverStatus {
 
 	dockerOK, dockerDetail := cmdOK("docker", "info")
 	checks = append(checks, mk("docker.info", dockerOK, dockerDetail))
+
+	if selected == "k3s" {
+		checks = append(checks, Check{Name: "k3s", Status: "warn", Detail: "k3s checks not implemented yet"})
+		st.Checks = checks
+		return st
+	}
 
 	k3dOK, k3dDetail := cmdOK("k3d", "version")
 	st.K3D = k3dOK
