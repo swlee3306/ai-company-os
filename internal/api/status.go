@@ -7,26 +7,28 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/swlee3306/ai-company-os/internal/audit"
+	"github.com/swlee3306/ai-company-os/internal/driver"
 	"github.com/swlee3306/ai-company-os/internal/store"
 )
 
 func init() {
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Show current system status (reads local state store)",
+		Short: "Show current system status",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := store.NewFileStore(defaultDataDir())
 			au := audit.NewFileAudit(st)
 			au.Emit("cli", "status", nil)
+
+			base := map[string]any{}
 			b, err := st.ReadState()
-			if err != nil {
-				return err
+			if err == nil {
+				_ = json.Unmarshal(b, &base)
 			}
-			var obj any
-			if err := json.Unmarshal(b, &obj); err != nil {
-				return err
-			}
-			out, _ := json.MarshalIndent(obj, "", "  ")
+
+			base["driver"] = driver.CheckAll()
+
+			out, _ := json.MarshalIndent(base, "", "  ")
 			fmt.Println(string(out))
 			return nil
 		},
