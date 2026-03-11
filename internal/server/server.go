@@ -13,6 +13,9 @@ import (
 )
 
 func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
+	// Load local secrets into env (MVP).
+	applySecretsToEnv(st)
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 
