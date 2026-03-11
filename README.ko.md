@@ -6,6 +6,30 @@
 - 프론트엔드: React + Vite
 - 로컬 저장소: `~/.ai-company-os/` (환경변수 `AI_COMPANY_OS_HOME`로 변경 가능)
 
+## Seed 없이 시작(실사용 모드)
+
+데모 데이터 없이 빈 상태에서 시작해서 UI로 직접 등록할 수 있습니다.
+
+```bash
+export AI_COMPANY_OS_HOME="$HOME/.ai-company-os-prod"
+mkdir -p "$AI_COMPANY_OS_HOME"
+
+go build -o company ./cmd/company
+./company serve --listen 127.0.0.1:8787
+
+# 새 터미널
+cd web
+npm install
+npm run dev
+```
+
+웹 UI에서 생성 순서(추천):
+1) Agents에서 Agent 생성
+2) Projects에서 Project 생성
+3) Tasks에서 Task 생성
+4) Approvals에서 Approval request 생성(선택: task_id 연결)
+5) Artifacts에서 Artifact 생성(project_id/task_id 연결)
+
 ## 1분 데모
 
 ### 1) 백엔드 실행
