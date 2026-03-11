@@ -28,6 +28,7 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 
 	api := r.Group("/api")
 	registerEvidenceRoutes(api, st, au)
+	registerTaskRoutes(api, st, au)
 	api.GET("/status", func(c *gin.Context) {
 		au.Emit("api", "status.get", nil)
 		b, err := st.ReadState()
