@@ -15,15 +15,16 @@ func extractUnifiedDiff(out []byte) []byte {
 	lines := strings.Split(string(out[i:]), "\n")
 	kept := make([]string, 0, len(lines))
 	for _, l := range lines {
-		// Stop if we clearly left patch mode (common noisy footers)
-		if strings.HasPrefix(l, "tokens used") {
-			break
+		l = strings.TrimSuffix(l, "\r")
+		if l == "" {
+			// allow blank lines in diffs (rare), but ignore if we haven't started
+			if len(kept) > 0 {
+				kept = append(kept, l)
+			}
+			continue
 		}
-		if strings.HasPrefix(l, "codex") || strings.HasPrefix(l, "thinking") || strings.HasPrefix(l, "exec") {
-			break
-		}
-		if strings.HasPrefix(l, "file update") {
-			// ignore tool chatter
+		// Ignore common tool chatter/noise instead of stopping extraction.
+		if strings.HasPrefix(l, "tokens used") || strings.HasPrefix(l, "codex") || strings.HasPrefix(l, "thinking") || strings.HasPrefix(l, "exec") || strings.HasPrefix(l, "file update") {
 			continue
 		}
 
@@ -44,8 +45,8 @@ func extractUnifiedDiff(out []byte) []byte {
 		case strings.HasPrefix(l, "-"):
 		case strings.HasPrefix(l, " "):
 		default:
-			// If we hit a line that doesn't look like patch content, stop.
-			return []byte(strings.Join(kept, "\n") + "\n")
+			// skip non-patch lines; do not terminate early
+			continue
 		}
 		kept = append(kept, l)
 	}
