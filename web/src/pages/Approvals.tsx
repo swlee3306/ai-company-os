@@ -27,6 +27,15 @@ export default function Approvals() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
+  // create approval
+  const [newType, setNewType] = useState('production deploy');
+  const [newRequester, setNewRequester] = useState('');
+  const [newTarget, setNewTarget] = useState('');
+  const [newRisk, setNewRisk] = useState<'LOW' | 'MEDIUM' | 'HIGH'>('HIGH');
+  const [newTaskId, setNewTaskId] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState('');
+
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [evidenceError, setEvidenceError] = useState('');
 
@@ -54,6 +63,37 @@ export default function Approvals() {
   useEffect(() => {
     refresh();
   }, []);
+
+  async function createApproval() {
+    setCreateError('');
+    if (!newRequester.trim() || !newTarget.trim() || !newType.trim()) {
+      setCreateError('type, requester, target are required');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/approvals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: newType.trim(),
+          requester: newRequester.trim(),
+          target: newTarget.trim(),
+          risk: newRisk,
+          task_id: newTaskId.trim() || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      setNewRequester('');
+      setNewTarget('');
+      setNewTaskId('');
+      await refresh();
+    } catch (e: any) {
+      setCreateError(e?.message ?? String(e));
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function submitDecision() {
     if (!selected) return;
@@ -90,6 +130,27 @@ export default function Approvals() {
       {error ? (
         <div style={{ background: color.bg.danger, border: `1px solid ${color.border.danger}`, color: color.text.danger, padding: space.row, borderRadius: radius.card, marginBottom: space.card }}>{error}</div>
       ) : null}
+
+      <div style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, padding: space.card, background: color.bg.surface, marginBottom: space.card }}>
+        <div style={{ fontWeight: 800, marginBottom: 10 }}>Create approval request</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+          <input value={newRequester} onChange={(e) => setNewRequester(e.target.value)} placeholder="requester" style={{ padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}` }} />
+          <input value={newTarget} onChange={(e) => setNewTarget(e.target.value)} placeholder="target (project id or agent id)" style={{ padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}` }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px', gap: 8, marginBottom: 8 }}>
+          <input value={newType} onChange={(e) => setNewType(e.target.value)} placeholder="type" style={{ padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}` }} />
+          <select value={newRisk} onChange={(e) => setNewRisk(e.target.value as any)} style={{ padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}` }}>
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+          </select>
+        </div>
+        <input value={newTaskId} onChange={(e) => setNewTaskId(e.target.value)} placeholder="task_id (optional)" style={{ width: '100%', padding: 10, borderRadius: 10, border: `1px solid ${color.border.default}`, marginBottom: 8 }} />
+        {createError ? <div style={{ color: color.text.danger, fontSize: 12, marginBottom: 8 }}>{createError}</div> : null}
+        <button onClick={createApproval} disabled={creating} style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${color.border.default}`, background: color.text.primary, color: 'white' }}>
+          {creating ? 'Creating…' : 'Create'}
+        </button>
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: space.card }}>
         <div style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, overflow: 'hidden' }}>
