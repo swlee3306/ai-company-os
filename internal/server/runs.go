@@ -238,9 +238,12 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 						return
 					}
 
-					bePrompt := "You are BE. Make the minimal change to satisfy the Task. Output ONLY a unified diff starting with 'diff --git'.\n" + prompt
+					bePrompt := "You are BE. Make the minimal change to satisfy the Task.\n" +
+						"IMPORTANT: Output ONLY a unified diff. No commentary, no code fences, no 'file update:' lines.\n" +
+						"The diff MUST start with: diff --git\n" +
+						prompt
 					beOut, beErr := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", bePrompt).CombinedOutput()
-					_ = os.WriteFile(filepath.Join(dir, "be.stdout.log"), beOut, 0o644)
+					_ = os.WriteFile(filepath.Join(dir, "be.raw.log"), beOut, 0o644)
 					if beErr != nil {
 						r.Status = "failed"
 						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
@@ -251,19 +254,18 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 						c.JSON(500, gin.H{"error": r.Summary})
 						return
 					}
-					diffIdx := bytes.Index(beOut, []byte("diff --git"))
-					if diffIdx < 0 {
+					patch := extractUnifiedDiff(beOut)
+					if len(patch) == 0 {
 						r.Status = "failed"
 						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-						r.Summary = "be step failed: no diff found in output"
+						r.Summary = "be step failed: no unified diff found in output"
 						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
 						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
 						c.JSON(500, gin.H{"error": r.Summary})
 						return
 					}
-					patch := beOut[diffIdx:]
 					_ = os.WriteFile(filepath.Join(dir, "be.patch.diff"), patch, 0o644)
-					ap := exec.Command("git", "apply", filepath.Join(dir, "be.patch.diff"))
+					ap := exec.Command("git", "apply", "--whitespace=nowarn", filepath.Join(dir, "be.patch.diff"))
 					ap.Dir = repoPath
 					apOut, apErr := ap.CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "be.apply.log"), apOut, 0o644)
