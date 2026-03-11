@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -25,7 +26,7 @@ func init() {
 				{ID: "devops-worker-01", Name: "devops-worker-01", PersonaRole: "BE", OpsSpecialty: "DevOps", Status: "blocked", Scope: []string{"deploy:staging"}, Version: "v1.3.0", HeartbeatSeconds: 42, ApprovalRequired: true, RiskScope: []string{"deploy:prod", "secret:read"}},
 			}
 			projects := []model.Project{
-				{ID: "billing-core", Name: "billing-core migration", Status: "running", Phase: "schema + application cutover prep", OwnerCEO: "Flant", TeamLead: "openclaw", Due: "Mar 18", Summary: "Critical backend modernization program with staged rollout and approval gates.", Evidence: []string{"ADR-014", "schema-diff-v7", "benchmark-2026-03-09", "rollback-checklist.md"}, Agents: []string{"planner-manager-01", "backend-worker-03", "devops-worker-01"}},
+				{ID: "billing-core", Name: "billing-core migration", Status: "running", Phase: "schema + application cutover prep", OwnerCEO: "Flant", TeamLead: "openclaw", Due: "Mar 18", Summary: "Critical backend modernization program with staged rollout and approval gates.", Evidence: []string{"ADR-014", "schema-diff-v7", "benchmark-2026-03-09", "rollback-checklist.md", "A-20260311-DEPLOYPLAN"}, Agents: []string{"planner-manager-01", "backend-worker-03", "devops-worker-01"}},
 				{ID: "agent-runtime-v2", Name: "agent-runtime v2", Status: "reviewing", Phase: "perf + stability", OwnerCEO: "Flant", TeamLead: "openclaw", Due: "", Summary: "Runtime upgrade with tighter audit + approval semantics."},
 			}
 			approvals := []model.ApprovalItem{
@@ -37,6 +38,12 @@ func init() {
 			ab, _ := json.MarshalIndent(agents, "", "  ")
 			pb, _ := json.MarshalIndent(projects, "", "  ")
 			qb, _ := json.MarshalIndent(approvals, "", "  ")
+
+			artifacts := []model.Artifact{
+				{ID: "A-20260311-DEPLOYPLAN", Type: "runbook", Title: "Production deploy plan (demo)", ProjectID: "billing-core", TaskID: "T-184", URI: "https://example.com/runbooks/billing-core-prod-deploy", CreatedAt: time.Now().UTC(), Meta: map[string]any{"note": "seeded demo artifact"}},
+			}
+			arb, _ := json.MarshalIndent(artifacts, "", "  ")
+
 			if err := st.WriteAgents(ab); err != nil {
 				return err
 			}
@@ -44,6 +51,9 @@ func init() {
 				return err
 			}
 			if err := st.WriteApprovals(qb); err != nil {
+				return err
+			}
+			if err := st.WriteArtifacts(arb); err != nil {
 				return err
 			}
 			if err := seedTasks(st); err != nil {
