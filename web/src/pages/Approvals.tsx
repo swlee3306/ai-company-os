@@ -5,6 +5,13 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 
 type Decision = 'approve' | 'reject';
 
+type Evidence = {
+  approval: any;
+  agent?: any;
+  project?: any;
+  audit_recent?: any[];
+};
+
 export default function Approvals() {
   const [data, setData] = useState<ApprovalItem[] | null>(null);
   const [error, setError] = useState<string>('');
@@ -17,12 +24,27 @@ export default function Approvals() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
 
+  const [evidence, setEvidence] = useState<Evidence | null>(null);
+  const [evidenceError, setEvidenceError] = useState('');
+
   async function refresh() {
     try {
       setError('');
       setData(await listApprovals());
     } catch (e: any) {
       setError(e?.message ?? String(e));
+    }
+  }
+
+  async function loadEvidence(id: string) {
+    setEvidence(null);
+    setEvidenceError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/approvals/${id}/evidence`);
+      if (!res.ok) throw new Error(`evidence fetch failed: ${res.status}`);
+      setEvidence(await res.json());
+    } catch (e: any) {
+      setEvidenceError(e?.message ?? String(e));
     }
   }
 
@@ -49,6 +71,7 @@ export default function Approvals() {
         throw new Error(t || `save failed: ${res.status}`);
       }
       await refresh();
+      await loadEvidence(selected.id);
     } catch (e: any) {
       setSaveError(e?.message ?? String(e));
     } finally {
@@ -65,7 +88,7 @@ export default function Approvals() {
         <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 16 }}>{error}</div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 16 }}>
         <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
             type / requester / target / risk / action
@@ -87,6 +110,7 @@ export default function Approvals() {
                     setDecision('approve');
                     setReason('');
                     setSaveError('');
+                    loadEvidence(it.id);
                   }}
                   style={{
                     width: '100%',
@@ -110,16 +134,53 @@ export default function Approvals() {
         </div>
 
         <aside style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: 'white' }}>
-          <h2 style={{ marginTop: 0 }}>Decision</h2>
+          <h2 style={{ marginTop: 0 }}>Review</h2>
           {!selected ? (
             <p style={{ color: '#6b7280' }}>Select an approval item to review evidence and decide.</p>
           ) : (
             <>
-              <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, marginBottom: 10 }}>
+              <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, marginBottom: 12 }}>
                 <div><strong>type</strong>: {selected.type}</div>
                 <div><strong>requester</strong>: {selected.requester}</div>
                 <div><strong>target</strong>: {selected.target}</div>
                 <div><strong>risk</strong>: {selected.risk}</div>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, marginBottom: 6 }}>Evidence</div>
+                {evidenceError ? <div style={{ color: '#b91c1c', fontSize: 12 }}>{evidenceError}</div> : null}
+                {!evidence ? (
+                  <div style={{ color: '#6b7280', fontSize: 12 }}>Loading evidence…</div>
+                ) : (
+                  <div style={{ fontSize: 12, color: '#374151' }}>
+                    {evidence.project ? (
+                      <div style={{ marginBottom: 6 }}>
+                        <div style={{ color: '#6b7280' }}>Project</div>
+                        <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{evidence.project.id} — {evidence.project.name}</div>
+                      </div>
+                    ) : null}
+                    {evidence.agent ? (
+                      <div style={{ marginBottom: 6 }}>
+                        <div style={{ color: '#6b7280' }}>Agent</div>
+                        <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{evidence.agent.id} ({evidence.agent.persona_role}{evidence.agent.ops_specialty ? `/${evidence.agent.ops_specialty}` : ''})</div>
+                      </div>
+                    ) : null}
+                    {evidence.audit_recent?.length ? (
+                      <div>
+                        <div style={{ color: '#6b7280' }}>Recent audit</div>
+                        <div style={{ border: '1px solid #f3f4f6', borderRadius: 10, padding: 10, maxHeight: 160, overflow: 'auto' }}>
+                          {evidence.audit_recent.map((a, i) => (
+                            <div key={i} style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+                              {a.ts ?? '-'} / {a.actor ?? '-'} / {a.action ?? '-'}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ color: '#6b7280' }}>No recent audit entries found.</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: 10 }}>
@@ -156,10 +217,6 @@ export default function Approvals() {
               >
                 {saving ? 'Saving…' : 'Submit decision'}
               </button>
-
-              <p style={{ marginTop: 12, color: '#6b7280', fontSize: 12 }}>
-                Evidence panel coming next (logs, commits, tests, audit trail).
-              </p>
             </>
           )}
         </aside>
