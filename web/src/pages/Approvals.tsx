@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listApprovals, type ApprovalItem } from '../lib/api';
+import { color, font, radius, space } from '../ui/tokens';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 
@@ -84,15 +85,15 @@ export default function Approvals() {
   return (
     <div style={{ maxWidth: 1200 }}>
       <h1 style={{ marginTop: 0 }}>Approval Center</h1>
-      <p style={{ color: '#6b7280' }}>Queue for production deploys, sensitive permission elevation, and new agent activation requests.</p>
+      <p style={{ color: color.text.muted }}>Queue for production deploys, sensitive permission elevation, and new agent activation requests.</p>
 
       {error ? (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 16 }}>{error}</div>
+        <div style={{ background: color.bg.danger, border: `1px solid ${color.border.danger}`, color: color.text.danger, padding: space.row, borderRadius: radius.card, marginBottom: space.card }}>{error}</div>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: 16 }}>
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: space.card }}>
+        <div style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, overflow: 'hidden' }}>
+          <div style={{ padding: 12, fontFamily: font.mono, fontSize: 12, color: color.text.muted, borderBottom: `1px solid ${color.border.default}` }}>
             type / requester / target / risk / action
           </div>
 
@@ -103,7 +104,7 @@ export default function Approvals() {
           ) : (
             data.map((it) => {
               const isSelected = it.id === selectedId;
-              const color = it.risk === 'HIGH' ? '#b91c1c' : it.risk === 'MEDIUM' ? '#b45309' : '#374151';
+              const rowColor = it.risk === 'HIGH' ? '#b91c1c' : it.risk === 'MEDIUM' ? '#b45309' : '#374151';
               return (
                 <button
                   key={it.id}
@@ -119,12 +120,12 @@ export default function Approvals() {
                     textAlign: 'left',
                     padding: 12,
                     border: 'none',
-                    borderBottom: '1px solid #f3f4f6',
-                    background: isSelected ? '#eef2ff' : 'white',
+                    borderBottom: `1px solid ${color.border.subtle}`,
+                    background: isSelected ? color.bg.selected : color.bg.surface,
                     cursor: 'pointer',
-                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                    fontFamily: font.mono,
                     fontSize: 12,
-                    color,
+                    color: rowColor,
                   }}
                 >
                   {it.type} / {it.requester} / {it.target} / {it.risk} / {it.action}
@@ -135,10 +136,10 @@ export default function Approvals() {
           )}
         </div>
 
-        <aside style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: 'white' }}>
+        <aside style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, padding: space.card, background: color.bg.surface }}>
           <h2 style={{ marginTop: 0 }}>Review</h2>
           {!selected ? (
-            <p style={{ color: '#6b7280' }}>Select an approval item to review evidence and decide.</p>
+            <p style={{ color: color.text.muted }}>Select an approval item to review evidence and decide.</p>
           ) : (
             <>
               <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, marginBottom: 12 }}>

@@ -63,6 +63,11 @@ npm run dev
 - Projects에서 `billing-core` 상태/증거(evidence bundle) 확인
 - Audit Logs에서 `approvals.decision` + `cause=approval` 이벤트 추적
 
+## UI 규칙(개발 참고)
+- page padding: 32
+- section gap: 24
+- card padding: 16
+
 ## 릴리즈 빌드
 
 ```bash
