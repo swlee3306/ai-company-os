@@ -11,6 +11,7 @@ import (
 
 type evidenceResponse struct {
 	Approval map[string]any   `json:"approval"`
+	Task     map[string]any   `json:"task,omitempty"`
 	Agent    map[string]any   `json:"agent,omitempty"`
 	Project  map[string]any   `json:"project,omitempty"`
 	Audit    []map[string]any `json:"audit_recent"`
@@ -45,6 +46,19 @@ func registerEvidenceRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit
 		}
 
 		resp := evidenceResponse{Approval: appr}
+
+		// task link (if present)
+		if tid, _ := appr["task_id"].(string); tid != "" {
+			tb, _ := st.ReadTasks()
+			var tasks []map[string]any
+			_ = json.Unmarshal(tb, &tasks)
+			for _, t := range tasks {
+				if t["id"] == tid {
+					resp.Task = t
+					break
+				}
+			}
+		}
 
 		// attempt link target to agent/project by id
 		target, _ := appr["target"].(string)

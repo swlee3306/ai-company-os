@@ -45,6 +45,24 @@ npm run dev
 - Linux에서는 k3s 옵션도 선택 가능(Settings에서 변경)
   - 운영 노드에서는 up/down 테스트 주의(별도 테스트 노드 권장)
 
+## B2 데모(운영 시나리오): Production Deploy 승인 플로우
+
+목표: **Task → Approval → Evidence/Artifact → Side-effect → Audit**가 한 흐름으로 이어지는지 확인합니다.
+
+1) seed 실행
+```bash
+./company seed
+```
+
+2) 웹에서 확인
+- Tasks로 이동 → `T-184` 클릭
+- Linked approval 안내를 확인하고 Approval Center로 이동
+- Approval Center에서 `appr-1 (production deploy)` 선택
+  - Evidence bundle에서 `A-20260311-DEPLOYPLAN` 링크 클릭 → Artifact detail로 이동
+- approve 실행
+- Projects에서 `billing-core` 상태/증거(evidence bundle) 확인
+- Audit Logs에서 `approvals.decision` + `cause=approval` 이벤트 추적
+
 ## 릴리즈 빌드
 
 ```bash

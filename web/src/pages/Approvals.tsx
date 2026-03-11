@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { listApprovals, type ApprovalItem } from '../lib/api';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
@@ -7,6 +8,7 @@ type Decision = 'approve' | 'reject';
 
 type Evidence = {
   approval: any;
+  task?: any;
   agent?: any;
   project?: any;
   audit_recent?: any[];
@@ -144,7 +146,7 @@ export default function Approvals() {
                 <div><strong>requester</strong>: {selected.requester}</div>
                 <div><strong>target</strong>: {selected.target}</div>
                 <div><strong>risk</strong>: {selected.risk}</div>
-                {selected.task_id ? <div><strong>task</strong>: {selected.task_id}</div> : null}
+                {selected.task_id ? <div><strong>task</strong>: <Link to={`/tasks/${selected.task_id}`} style={{ color: '#111827' }}>{selected.task_id}</Link></div> : null}
               </div>
 
               <div style={{ marginBottom: 12 }}>
@@ -155,9 +157,25 @@ export default function Approvals() {
                 ) : (
                   <div style={{ fontSize: 12, color: '#374151' }}>
                     {evidence.project ? (
-                      <div style={{ marginBottom: 6 }}>
+                      <div style={{ marginBottom: 10 }}>
                         <div style={{ color: '#6b7280' }}>Project</div>
                         <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{evidence.project.id} — {evidence.project.name}</div>
+                        {Array.isArray(evidence.project.evidence_bundle) && evidence.project.evidence_bundle.length ? (
+                          <div style={{ marginTop: 8 }}>
+                            <div style={{ color: '#6b7280' }}>Evidence bundle</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                              {evidence.project.evidence_bundle.map((e: string) => {
+                                const isArtifact = typeof e === 'string' && e.startsWith('A-');
+                                const chipStyle: any = { padding: '4px 8px', borderRadius: 999, border: '1px solid #e5e7eb', background: '#f9fafb' };
+                                return isArtifact ? (
+                                  <Link key={e} to={`/artifacts/${e}`} style={{ ...chipStyle, color: '#111827', textDecoration: 'none' }}>{e}</Link>
+                                ) : (
+                                  <span key={e} style={chipStyle}>{e}</span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                     {evidence.agent ? (
