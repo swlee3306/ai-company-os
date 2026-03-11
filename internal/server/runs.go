@@ -1,0 +1,166 @@
+package server
+
+import (
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/swlee3306/ai-company-os/internal/audit"
+	"github.com/swlee3306/ai-company-os/internal/model"
+	"github.com/swlee3306/ai-company-os/internal/store"
+)
+
+type runRequest struct {
+	TaskID     string `json:"task_id"`
+	RunnerType string `json:"runner_type"`
+	Pipeline   string `json:"pipeline"`
+}
+
+type runDetail struct {
+	Run model.Run `json:"run"`
+}
+
+func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.FileAudit) {
+	api.POST("/tasks/:id/run", func(c *gin.Context) {
+		taskID := c.Param("id")
+		var body struct {
+			Pipeline string `json:"pipeline"`
+		}
+		_ = c.ShouldBindJSON(&body)
+		if body.Pipeline == "" {
+			body.Pipeline = "pm_only"
+		}
+
+		// read runner from settings (best-effort)
+		runnerType := "codex_cli"
+		if b, err := st.ReadSettings(); err == nil {
+			var s map[string]any
+			if json.Unmarshal(b, &s) == nil {
+				if r, ok := s["runner"].(map[string]any); ok {
+					if t, ok := r["type"].(string); ok && t != "" {
+						runnerType = t
+					}
+				}
+			}
+		}
+
+		runID := fmtID("run")
+		now := time.Now().UTC().Format(time.RFC3339)
+		r := model.Run{ID: runID, TaskID: taskID, RunnerType: runnerType, Pipeline: body.Pipeline, Status: "running", StartedAt: now}
+
+		if err := st.EnsureRunDir(runID); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		dir := st.RunDir(runID)
+
+		// persist request.json
+		rq := runRequest{TaskID: taskID, RunnerType: runnerType, Pipeline: body.Pipeline}
+		rqb, _ := json.MarshalIndent(rq, "", "  ")
+		_ = os.WriteFile(filepath.Join(dir, "request.json"), rqb, 0o644)
+
+		// minimal logs / result placeholders
+		_ = os.WriteFile(filepath.Join(dir, "prompt.txt"), []byte("(runner mvp)\n"), 0o644)
+		_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte("(runner mvp) started\n"), 0o644)
+		_ = os.WriteFile(filepath.Join(dir, "stderr.log"), []byte(""), 0o644)
+
+		au.Emit("api", "run.start", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "pipeline": body.Pipeline})
+
+		// For MVP: immediately mark done (no actual CLI execution yet)
+		r.Status = "done"
+		r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+		r.Summary = "runner mvp placeholder (execution engine integration next)"
+		resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
+		_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+		_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte("(runner mvp) done\n"), 0o644)
+		au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType})
+
+		// Create artifact pointing to stdout.log
+		artifactBody := map[string]any{
+			"type":    "run_log",
+			"title":   "Run log " + runID,
+			"uri":     "file://" + filepath.Join(dir, "stdout.log"),
+			"task_id": taskID,
+			"meta":    map[string]any{"run_id": runID},
+		}
+		ab, _ := json.Marshal(artifactBody)
+		// Reuse artifact create logic via direct append (simple)
+		_ = appendArtifactJSON(st, au, ab)
+
+		c.JSON(201, runDetail{Run: r})
+	})
+
+	api.GET("/runs", func(c *gin.Context) {
+		st.EnsureRunsDir()
+		dirs, _ := os.ReadDir(st.RunsDir())
+		out := []model.Run{}
+		for _, d := range dirs {
+			if !d.IsDir() {
+				continue
+			}
+			b, err := os.ReadFile(filepath.Join(st.RunDir(d.Name()), "request.json"))
+			if err != nil {
+				continue
+			}
+			var rq runRequest
+			if json.Unmarshal(b, &rq) != nil {
+				continue
+			}
+			out = append(out, model.Run{ID: d.Name(), TaskID: rq.TaskID, RunnerType: rq.RunnerType, Pipeline: rq.Pipeline})
+		}
+		c.JSON(200, out)
+	})
+
+	api.GET("/runs/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		dir := st.RunDir(id)
+		b, err := os.ReadFile(filepath.Join(dir, "request.json"))
+		if err != nil {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+		var rq runRequest
+		_ = json.Unmarshal(b, &rq)
+		r := model.Run{ID: id, TaskID: rq.TaskID, RunnerType: rq.RunnerType, Pipeline: rq.Pipeline}
+		c.JSON(200, runDetail{Run: r})
+	})
+}
+
+// appendArtifactJSON appends an artifact to artifacts.json using the same shape as POST /api/artifacts.
+// NOTE: This is an internal helper for the runner MVP.
+func appendArtifactJSON(st *store.FileStore, au *audit.FileAudit, body []byte) error {
+	var in struct {
+		Type      string         `json:"type"`
+		Title     string         `json:"title"`
+		ProjectID string         `json:"project_id"`
+		TaskID    string         `json:"task_id"`
+		URI       string         `json:"uri"`
+		Meta      map[string]any `json:"meta"`
+	}
+	if err := json.Unmarshal(body, &in); err != nil {
+		return err
+	}
+	a := model.Artifact{
+		ID:        fmtID("A"),
+		Type:      in.Type,
+		Title:     in.Title,
+		ProjectID: in.ProjectID,
+		TaskID:    in.TaskID,
+		URI:       in.URI,
+		CreatedAt: time.Now().UTC(),
+		Meta:      in.Meta,
+	}
+	au.Emit("system", "artifact.create", map[string]any{"artifact_id": a.ID, "project_id": a.ProjectID, "task_id": a.TaskID, "cause": "run"})
+	b, err := st.ReadArtifacts()
+	if err != nil {
+		return err
+	}
+	var arr []model.Artifact
+	_ = json.Unmarshal(b, &arr)
+	arr = append(arr, a)
+	out, _ := json.MarshalIndent(arr, "", "  ")
+	return st.WriteArtifacts(out)
+}
