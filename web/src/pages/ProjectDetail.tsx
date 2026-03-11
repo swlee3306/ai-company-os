@@ -51,17 +51,46 @@ export default function ProjectDetail() {
         <>
           <Card title="Project overview">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
-              <div><span style={{ color: '#6b7280' }}>Status</span><div>{data.status}</div></div>
-              <div><span style={{ color: '#6b7280' }}>Phase</span><div>{data.phase}</div></div>
-              <div><span style={{ color: '#6b7280' }}>Owner (CEO)</span><div>{data.owner_ceo}</div></div>
-              <div><span style={{ color: '#6b7280' }}>Team Lead</span><div>{data.team_lead}</div></div>
+              <div>
+                <span style={{ color: '#6b7280' }}>Status</span>
+                <div>{data.status}</div>
+              </div>
+              <div>
+                <span style={{ color: '#6b7280' }}>Phase</span>
+                <div>{data.phase}</div>
+              </div>
+              <div>
+                <span style={{ color: '#6b7280' }}>Owner (CEO)</span>
+                <div>{data.owner_ceo}</div>
+              </div>
+              <div>
+                <span style={{ color: '#6b7280' }}>Team Lead</span>
+                <div>{data.team_lead}</div>
+              </div>
             </div>
             {data.summary ? <div style={{ marginTop: 10, color: '#374151' }}>{data.summary}</div> : null}
           </Card>
 
           <Card title="Goal / current work / evidence bundle">
             <div style={{ color: '#6b7280', fontSize: 12 }}>Evidence bundle</div>
-            <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{evidence.length ? evidence.join(', ') : '-'}</div>
+            <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+              {evidence.length ? (
+                evidence.map((e, i) => (
+                  <span key={e}>
+                    {i ? ', ' : ''}
+                    {/^(A-)/.test(e) ? (
+                      <Link to={`/artifacts/${e}`} style={{ color: '#111827' }}>
+                        {e}
+                      </Link>
+                    ) : (
+                      e
+                    )}
+                  </span>
+                ))
+              ) : (
+                '-'
+              )}
+            </div>
           </Card>
 
           <Card title="Participating agents and recent work">
