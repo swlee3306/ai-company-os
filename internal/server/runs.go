@@ -155,9 +155,22 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 			}
 
 			// Build a simple PM prompt (non-interactive)
+			repoPath := ""
+			if b, err := st.ReadSettings(); err == nil {
+				var s map[string]any
+				if json.Unmarshal(b, &s) == nil {
+					if ws, ok := s["workspace"].(map[string]any); ok {
+						if rp, ok := ws["repo_path"].(string); ok {
+							repoPath = rp
+						}
+					}
+				}
+			}
 			prompt := "You are PM. Provide acceptance criteria and an execution plan.\n" +
 				"Task ID: " + taskID + "\n" +
-				"Pipeline: " + body.Pipeline + "\n"
+				"Pipeline: " + body.Pipeline + "\n" +
+				"Repo: " + repoPath + "\n" +
+				"Constraints: branch/PR only, QA batch once, audit-first.\n"
 			_ = os.WriteFile(filepath.Join(dir, "prompt.txt"), []byte(prompt), 0o644)
 
 			au.Emit("system", "run.step.start", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "backend": runnerBackend})
@@ -177,23 +190,48 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 				return
 			}
 
-			// Attempt to run the CLI once with prompt via stdin (generic fallback)
-			cmd := exec.Command(cmdStr)
-			cmd.Stdin = bytes.NewReader([]byte(prompt))
-			outB, err := cmd.CombinedOutput()
-			if err != nil {
+			// If runner is codex, use `codex exec` non-interactively.
+			if filepath.Base(cmdStr) == "codex" {
+				if repoPath == "" {
+					c.JSON(400, gin.H{"error": "workspace.repo_path required for codex"})
+					return
+				}
+				cmd := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", "-a", "untrusted", prompt)
+				outB, err := cmd.CombinedOutput()
+				if err != nil {
+					_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+					r.Status = "failed"
+					r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+					r.Summary = "local_cli(codex exec) failed: " + err.Error()
+					resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+					_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+					au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "failed"})
+					au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
+					c.JSON(500, gin.H{"error": r.Summary})
+					return
+				}
 				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
-				r.Status = "failed"
-				r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-				r.Summary = "local_cli failed: " + err.Error()
-				resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
-				_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
-				au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "failed"})
-				au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
-				c.JSON(500, gin.H{"error": r.Summary})
-				return
+			} else {
+				// Attempt to run the CLI once with prompt via stdin (generic fallback)
+				cmd := exec.Command(cmdStr)
+				cmd.Stdin = bytes.NewReader([]byte(prompt))
+				outB, err := cmd.CombinedOutput()
+				if err != nil {
+					_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+					r.Status = "failed"
+					r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+					r.Summary = "local_cli failed: " + err.Error()
+					resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+					_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+					au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "failed"})
+					au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
+					c.JSON(500, gin.H{"error": r.Summary})
+					return
+				}
+				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
 			}
-			_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+
+			// success path continues below
 
 			r.Status = "done"
 			r.EndedAt = time.Now().UTC().Format(time.RFC3339)
