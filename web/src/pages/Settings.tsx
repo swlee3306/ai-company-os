@@ -5,6 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 type Settings = {
   driver: { selected: 'k3d' | 'k3s' };
   approval: { policy_text: string };
+  workspace?: { repo_path?: string };
   runner?: { backend?: string; type: string; command: string; workdir?: string; agents?: { pm?: string } };
 };
 
@@ -12,6 +13,9 @@ export default function Settings() {
   const [data, setData] = useState<Settings | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const [wsStatus, setWsStatus] = useState<{ status: string; detail?: string } | null>(null);
+  const [wsValidating, setWsValidating] = useState(false);
 
   async function refresh() {
     try {
@@ -46,6 +50,29 @@ export default function Settings() {
     }
   }
 
+  async function validateWorkspace() {
+    if (!data?.workspace?.repo_path?.trim()) {
+      setWsStatus({ status: 'fail', detail: 'repo_path is empty' });
+      return;
+    }
+    setWsValidating(true);
+    setWsStatus(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/workspace/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repo_path: data.workspace.repo_path }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const out = await res.json();
+      setWsStatus({ status: out.status || (out.ok ? 'ok' : 'fail'), detail: out.detail });
+    } catch (e: any) {
+      setWsStatus({ status: 'fail', detail: e?.message ?? String(e) });
+    } finally {
+      setWsValidating(false);
+    }
+  }
+
   return (
     <div style={{ maxWidth: 900 }}>
       <h1 style={{ marginTop: 0 }}>Settings</h1>
@@ -69,6 +96,29 @@ export default function Settings() {
               <option value="k3d">k3d</option>
               <option value="k3s">k3s</option>
             </select>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>Workspace repo path</div>
+            <input
+              value={data.workspace?.repo_path || ''}
+              onChange={(e) => setData({ ...data, workspace: { repo_path: e.target.value } })}
+              placeholder="/Users/you/workspace/my-project"
+              style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #e5e7eb', marginBottom: 8 }}
+            />
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button onClick={validateWorkspace} disabled={wsValidating} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid #e5e7eb', background: 'white' }}>
+                {wsValidating ? 'Validating…' : 'Validate'}
+              </button>
+              {wsStatus ? (
+                <div style={{ fontSize: 12, color: wsStatus.status === 'ok' ? '#065f46' : wsStatus.status === 'warn' ? '#b45309' : '#b91c1c' }}>
+                  {wsStatus.status}{wsStatus.detail ? ` — ${wsStatus.detail}` : ''}
+                </div>
+              ) : null}
+            </div>
+            <div style={{ marginTop: 6, color: '#6b7280', fontSize: 12 }}>
+              Used by local_cli/codex runner (codex exec -C).
+            </div>
           </div>
 
           <div style={{ marginBottom: 14 }}>
