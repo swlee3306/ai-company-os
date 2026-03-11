@@ -24,9 +24,12 @@ type DriverStatus struct {
 func CheckAll() DriverStatus {
 	st := DriverStatus{Selected: "k3d"}
 
+	daemonOK, daemonDetail := DockerDaemonOK()
+	st.Docker = daemonOK
+	checks := []Check{mk("docker.daemon", daemonOK, daemonDetail)}
+
 	dockerOK, dockerDetail := cmdOK("docker", "info")
-	st.Docker = dockerOK
-	checks := []Check{mk("docker.info", dockerOK, dockerDetail)}
+	checks = append(checks, mk("docker.info", dockerOK, dockerDetail))
 
 	k3dOK, k3dDetail := cmdOK("k3d", "version")
 	st.K3D = k3dOK

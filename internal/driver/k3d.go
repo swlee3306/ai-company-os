@@ -3,10 +3,15 @@ package driver
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
 func K3DUp(cluster string) error {
+	ok, detail := DockerDaemonOK()
+	if !ok {
+		return FormatDockerPreflightError(runtime.GOOS, detail)
+	}
 	if _, err := exec.LookPath("k3d"); err != nil {
 		return fmt.Errorf("k3d not found; run `company install k3d`")
 	}
@@ -22,6 +27,11 @@ func K3DUp(cluster string) error {
 }
 
 func K3DDown(cluster string) error {
+	ok, _ := DockerDaemonOK()
+	if !ok {
+		// soft-fail: keep down idempotent even if docker daemon is stopped
+		return nil
+	}
 	if _, err := exec.LookPath("k3d"); err != nil {
 		return nil
 	}
