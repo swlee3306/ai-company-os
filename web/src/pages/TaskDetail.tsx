@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { listApprovals, type ApprovalItem, type Task } from '../lib/api';
+import { color, radius, space } from '../ui/tokens';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 
@@ -35,13 +36,13 @@ export default function TaskDetail() {
     <div style={{ maxWidth: 900 }}>
       <h1 style={{ marginTop: 0 }}>Task</h1>
       {error ? (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 16 }}>{error}</div>
+        <div style={{ background: color.bg.danger, border: `1px solid ${color.border.danger}`, color: color.text.danger, padding: space.row, borderRadius: radius.card, marginBottom: space.card }}>{error}</div>
       ) : null}
 
       {!task ? (
-        <div>Loading…</div>
+        <div style={{ color: color.text.muted }}>Loading…</div>
       ) : (
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: 'white' }}>
+        <div style={{ border: `1px solid ${color.border.default}`, borderRadius: radius.card, padding: space.card, background: color.bg.surface }}>
           <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', fontSize: 12, color: '#6b7280' }}>{task.id}</div>
           <div style={{ fontWeight: 800, fontSize: 18, marginTop: 6 }}>{task.title}</div>
           {task.desc ? <p style={{ marginBottom: 8, color: '#374151' }}>{task.desc}</p> : null}
