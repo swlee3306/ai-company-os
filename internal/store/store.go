@@ -128,3 +128,11 @@ func (s *FileStore) ReadApprovals() ([]byte, error) {
 func (s *FileStore) WriteApprovals(b []byte) error {
 	return s.writeJSON("approvals.json", b)
 }
+
+func (s *FileStore) ReadTasks() ([]byte, error) {
+	return s.readJSONOrDefault("tasks.json", "[]")
+}
+
+func (s *FileStore) WriteTasks(b []byte) error {
+	return s.writeJSON("tasks.json", b)
+}
