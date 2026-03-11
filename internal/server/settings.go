@@ -59,9 +59,9 @@ func registerSettingsRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit
 			return
 		}
 		switch body.Runner.Backend {
-		case "", "local_placeholder", "openclaw_acp":
+		case "", "local_placeholder", "local_cli", "openclaw_acp":
 		default:
-			c.JSON(400, gin.H{"error": "runner.backend must be local_placeholder|openclaw_acp"})
+			c.JSON(400, gin.H{"error": "runner.backend must be local_placeholder|local_cli|openclaw_acp"})
 			return
 		}
 		au.Emit("api", "settings.update", map[string]any{"driver": body.Driver.Selected, "runner": body.Runner.Type, "runner_backend": body.Runner.Backend})
