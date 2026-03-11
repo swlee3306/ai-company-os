@@ -1,17 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { type Project } from '../lib/api';
+import { Card } from '../components/Card';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
-
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, background: 'white', marginBottom: 12 }}>
-      <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 16 }}>{title}</h2>
-      {children}
-    </section>
-  );
-}
 
 export default function ProjectDetail() {
   const { id } = useParams();
@@ -35,7 +27,7 @@ export default function ProjectDetail() {
 
   return (
     <div style={{ maxWidth: 1100 }}>
-      <h1 style={{ marginTop: 0 }}>Project Detail {data ? ` / ${data.id}` : ''}</h1>
+      <h1 style={{ marginTop: 0 }}>Project Detail {data ? ` / ${data.name}` : ''}</h1>
       <p style={{ color: '#6b7280' }}>Goal, current work, and evidence for a project.</p>
       <p>
         <Link to="/projects">← Back to projects</Link>
