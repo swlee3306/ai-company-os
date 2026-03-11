@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import Agents from './pages/Agents';
 import Tasks from './pages/Tasks';
+import TaskDetail from './pages/TaskDetail';
 import Workflows from './pages/Workflows';
 import Approvals from './pages/Approvals';
 import Artifacts from './pages/Artifacts';
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
       { path: '/projects', element: <Projects /> },
       { path: '/agents', element: <Agents /> },
       { path: '/tasks', element: <Tasks /> },
+      { path: '/tasks/:id', element: <TaskDetail /> },
       { path: '/workflows', element: <Workflows /> },
       { path: '/approvals', element: <Approvals /> },
       { path: '/artifacts', element: <Artifacts /> },
