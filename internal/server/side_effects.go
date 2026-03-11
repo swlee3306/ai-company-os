@@ -3,12 +3,13 @@ package server
 import (
 	"encoding/json"
 
+	"github.com/swlee3306/ai-company-os/internal/audit"
 	"github.com/swlee3306/ai-company-os/internal/store"
 )
 
 // applyApprovalSideEffects is an MVP rule engine that updates related store objects
 // to reflect approval decisions. This is intentionally simple and deterministic.
-func applyApprovalSideEffects(st *store.FileStore, approval map[string]any) {
+func applyApprovalSideEffects(st *store.FileStore, au *audit.FileAudit, approval map[string]any) {
 	decision, _ := approval["status"].(string)
 	apprType, _ := approval["type"].(string)
 	target, _ := approval["target"].(string)
@@ -31,13 +32,17 @@ func applyApprovalSideEffects(st *store.FileStore, approval map[string]any) {
 		for _, a := range agents {
 			if a["id"] == target || a["name"] == target {
 				if decision == "approve" {
+					old := a["status"]
 					a["status"] = "active"
 					a["approval_required"] = false
+					au.Emit("system", "agent.status", map[string]any{"id": a["id"], "from": old, "to": "active"})
 					changed = true
 				}
 				if decision == "reject" {
+					old := a["status"]
 					a["status"] = "blocked"
 					a["approval_required"] = true
+					au.Emit("system", "agent.status", map[string]any{"id": a["id"], "from": old, "to": "blocked"})
 					changed = true
 				}
 			}
@@ -63,11 +68,15 @@ func applyApprovalSideEffects(st *store.FileStore, approval map[string]any) {
 		for _, p := range projects {
 			if p["id"] == target {
 				if decision == "approve" {
+					old := p["status"]
 					p["status"] = "running"
+					au.Emit("system", "project.status", map[string]any{"id": p["id"], "from": old, "to": "running"})
 					changed = true
 				}
 				if decision == "reject" {
+					old := p["status"]
 					p["status"] = "blocked"
+					au.Emit("system", "project.status", map[string]any{"id": p["id"], "from": old, "to": "blocked"})
 					changed = true
 				}
 			}

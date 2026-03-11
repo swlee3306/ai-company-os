@@ -187,7 +187,7 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 				it["decision_reason"] = body.Reason
 
 				// MVP side-effects: update related agent/project state for demo flows
-				applyApprovalSideEffects(st, it)
+				applyApprovalSideEffects(st, au, it)
 
 				out, _ := json.MarshalIndent(arr, "", "  ")
 				if err := st.WriteApprovals(out); err != nil {
