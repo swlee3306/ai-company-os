@@ -185,6 +185,10 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 			if it["id"] == id {
 				it["status"] = body.Decision
 				it["decision_reason"] = body.Reason
+
+				// MVP side-effects: update related agent/project state for demo flows
+				applyApprovalSideEffects(st, it)
+
 				out, _ := json.MarshalIndent(arr, "", "  ")
 				if err := st.WriteApprovals(out); err != nil {
 					c.JSON(500, gin.H{"error": err.Error()})
