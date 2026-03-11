@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/swlee3306/ai-company-os/internal/driver"
+
 	"github.com/spf13/cobra"
 
 	"github.com/swlee3306/ai-company-os/internal/audit"
@@ -26,8 +28,8 @@ func init() {
 				"checks": []map[string]any{
 					{"name": "filesystem", "status": "ok"},
 					{"name": "network", "status": "ok"},
-					{"name": "driver", "status": "unknown", "note": "k3d/k3s checks not wired yet"},
 				},
+				"driver": driver.CheckAll(),
 			}
 			b, _ := json.Marshal(res)
 			if err := st.WriteDoctor(b); err != nil {
