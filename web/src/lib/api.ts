@@ -42,6 +42,17 @@ export type ApprovalItem = {
   status: string;
 };
 
+export type Task = {
+  id: string;
+  title: string;
+  desc?: string;
+  state: string;
+  assignee?: string;
+  reviewer_required: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 async function getJson<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`${path} fetch failed: ${res.status}`);
@@ -72,4 +83,28 @@ export async function listProjects(): Promise<Project[]> {
 
 export async function listApprovals(): Promise<ApprovalItem[]> {
   return getJson('/api/approvals');
+}
+
+export async function listTasks(): Promise<Task[]> {
+  return getJson('/api/tasks');
+}
+
+export async function createTask(title: string, desc: string): Promise<Task> {
+  const res = await fetch(`${API_BASE}/api/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, desc }),
+  });
+  if (!res.ok) throw new Error(`create task failed: ${res.status}`);
+  return res.json();
+}
+
+export async function transitionTask(id: string, to: string): Promise<Task> {
+  const res = await fetch(`${API_BASE}/api/tasks/${id}/transition`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to }),
+  });
+  if (!res.ok) throw new Error(`transition failed: ${res.status}`);
+  return res.json();
 }
