@@ -17,9 +17,17 @@ type settingsObj struct {
 		PolicyText string `json:"policy_text"`
 	} `json:"approval"`
 	Runner struct {
+		Backend string `json:"backend"`
 		Type    string `json:"type"`
 		Command string `json:"command"`
 		Workdir string `json:"workdir"`
+		Agents  struct {
+			PM       string `json:"pm"`
+			FE       string `json:"fe"`
+			BE       string `json:"be"`
+			QA       string `json:"qa"`
+			Reviewer string `json:"reviewer"`
+		} `json:"agents"`
 	} `json:"runner"`
 }
 
@@ -50,7 +58,13 @@ func registerSettingsRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit
 			c.JSON(400, gin.H{"error": "runner.type must be codex_cli|claude_code|gemini_cli|custom"})
 			return
 		}
-		au.Emit("api", "settings.update", map[string]any{"driver": body.Driver.Selected, "runner": body.Runner.Type})
+		switch body.Runner.Backend {
+		case "", "local_placeholder", "openclaw_acp":
+		default:
+			c.JSON(400, gin.H{"error": "runner.backend must be local_placeholder|openclaw_acp"})
+			return
+		}
+		au.Emit("api", "settings.update", map[string]any{"driver": body.Driver.Selected, "runner": body.Runner.Type, "runner_backend": body.Runner.Backend})
 		out, _ := json.MarshalIndent(body, "", "  ")
 		if err := st.WriteSettings(out); err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
