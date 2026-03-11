@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -137,7 +138,7 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 			_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
 			au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
 		} else if runnerBackend == "local_cli" {
-			// MVP local_cli: execute runner.command as a simple subprocess
+			// E2.3 local_cli: run a non-interactive command once and capture output.
 			cmdStr := ""
 			if b, err := st.ReadSettings(); err == nil {
 				var s map[string]any
@@ -152,29 +153,55 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 			if cmdStr == "" {
 				cmdStr = "codex"
 			}
-			note := "(local_cli) command=" + cmdStr + "\n"
-			_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte(note), 0o644)
 
-			// For now, we do not attempt to drive an interactive agent; we just run `command --version` when possible.
-			// This validates the local_cli path without requiring login.
-			outB, err := exec.Command(cmdStr, "--version").CombinedOutput()
+			// Build a simple PM prompt (non-interactive)
+			prompt := "You are PM. Provide acceptance criteria and an execution plan.\n" +
+				"Task ID: " + taskID + "\n" +
+				"Pipeline: " + body.Pipeline + "\n"
+			_ = os.WriteFile(filepath.Join(dir, "prompt.txt"), []byte(prompt), 0o644)
+
+			au.Emit("system", "run.step.start", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "backend": runnerBackend})
+
+			// For portability: try `cmd --help` first (exists check), then attempt stdin prompt.
+			execCmd := exec.Command(cmdStr, "--help")
+			helpOut, helpErr := execCmd.CombinedOutput()
+			if helpErr != nil {
+				_ = os.WriteFile(filepath.Join(dir, "stderr.log"), helpOut, 0o644)
+				r.Status = "failed"
+				r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+				r.Summary = "local_cli failed: command not runnable: " + helpErr.Error()
+				resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+				_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+				au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
+				c.JSON(500, gin.H{"error": r.Summary})
+				return
+			}
+
+			// Attempt to run the CLI once with prompt via stdin (generic fallback)
+			cmd := exec.Command(cmdStr)
+			cmd.Stdin = bytes.NewReader([]byte(prompt))
+			outB, err := cmd.CombinedOutput()
 			if err != nil {
-				_ = os.WriteFile(filepath.Join(dir, "stderr.log"), outB, 0o644)
+				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
 				r.Status = "failed"
 				r.EndedAt = time.Now().UTC().Format(time.RFC3339)
 				r.Summary = "local_cli failed: " + err.Error()
 				resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
 				_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+				au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "failed"})
 				au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
-			} else {
-				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), append([]byte(note), outB...), 0o644)
-				r.Status = "done"
-				r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-				r.Summary = "local_cli ok (version check)"
-				resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
-				_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
-				au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
+				c.JSON(500, gin.H{"error": r.Summary})
+				return
 			}
+			_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+
+			r.Status = "done"
+			r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+			r.Summary = "local_cli ok"
+			resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
+			_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+			au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "ok"})
+			au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
 		} else {
 			// Fallback placeholder
 			r.Status = "done"
