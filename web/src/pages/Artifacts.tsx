@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 
@@ -50,7 +51,9 @@ export default function Artifacts() {
           {data.map((a) => (
             <div key={a.id} style={{ padding: 12, borderBottom: '1px solid #f3f4f6', fontSize: 12 }}>
               <div style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
-                {a.type || 'other'} / {a.title} / {a.project_id || '-'} / {a.task_id || '-'} / {a.created_at} / {a.uri}
+                {a.type || 'other'} /{' '}
+                <Link to={`/artifacts/${a.id}`} style={{ color: '#111827' }}>{a.title}</Link>
+                {' '} / {a.project_id || '-'} / {a.task_id || '-'} / {a.created_at} / {a.uri}
               </div>
             </div>
           ))}
