@@ -40,6 +40,7 @@ export type ApprovalItem = {
   risk: string;
   action: string;
   status: string;
+  task_id?: string;
 };
 
 export type Task = {
