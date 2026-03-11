@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -196,13 +197,15 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					c.JSON(400, gin.H{"error": "workspace.repo_path required for codex"})
 					return
 				}
-				cmd := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", prompt)
-				outB, err := cmd.CombinedOutput()
-				if err != nil {
-					_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+
+				// Step: PM
+				pmOut, pmErr := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", prompt).CombinedOutput()
+				_ = os.WriteFile(filepath.Join(dir, "pm.stdout.log"), pmOut, 0o644)
+				if pmErr != nil {
+					_ = os.WriteFile(filepath.Join(dir, "stdout.log"), pmOut, 0o644)
 					r.Status = "failed"
 					r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-					r.Summary = "local_cli(codex exec) failed: " + err.Error()
+					r.Summary = "pm step failed: " + pmErr.Error()
 					resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
 					_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
 					au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "failed"})
@@ -210,7 +213,151 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					c.JSON(500, gin.H{"error": r.Summary})
 					return
 				}
-				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
+				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), pmOut, 0o644)
+				au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "ok"})
+
+				if body.Pipeline == "full" {
+					// Step: BE (create branch + apply patch)
+					branch := "task-" + taskID + "-" + runID
+					for _, ch := range []string{":", "/", " ", "\\"} {
+						branch = strings.ReplaceAll(branch, ch, "-")
+					}
+					au.Emit("system", "run.step.start", map[string]any{"run_id": runID, "task_id": taskID, "role": "be"})
+					co := exec.Command("git", "checkout", "-b", branch)
+					co.Dir = repoPath
+					coOut, coErr := co.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "be.git.log"), coOut, 0o644)
+					if coErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "be step failed: git checkout -b: " + coErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID})
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+
+					bePrompt := "You are BE. Make the minimal change to satisfy the Task. Output ONLY a unified diff starting with 'diff --git'.\n" + prompt
+					beOut, beErr := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", bePrompt).CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "be.stdout.log"), beOut, 0o644)
+					if beErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "be step failed: " + beErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						au.Emit("system", "run.fail", map[string]any{"run_id": runID, "task_id": taskID})
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					diffIdx := bytes.Index(beOut, []byte("diff --git"))
+					if diffIdx < 0 {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "be step failed: no diff found in output"
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					patch := beOut[diffIdx:]
+					_ = os.WriteFile(filepath.Join(dir, "be.patch.diff"), patch, 0o644)
+					ap := exec.Command("git", "apply", filepath.Join(dir, "be.patch.diff"))
+					ap.Dir = repoPath
+					apOut, apErr := ap.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "be.apply.log"), apOut, 0o644)
+					if apErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "be step failed: git apply: " + apErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					add := exec.Command("git", "add", "-A")
+					add.Dir = repoPath
+					_, _ = add.CombinedOutput()
+					cm := exec.Command("git", "commit", "-m", "feat: "+taskID+" (auto)")
+					cm.Dir = repoPath
+					cmOut, cmErr := cm.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "be.commit.log"), cmOut, 0o644)
+					if cmErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "be step failed: git commit: " + cmErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "be", "status": "ok"})
+
+					// Step: PR
+					pu := exec.Command("git", "push", "-u", "origin", branch)
+					pu.Dir = repoPath
+					puOut, puErr := pu.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "pr.push.log"), puOut, 0o644)
+					if puErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "pr step failed: git push: " + puErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					pr := exec.Command("gh", "pr", "create", "--base", "main", "--head", branch, "--title", "Auto: "+taskID, "--body", "Created by AI Company OS")
+					pr.Dir = repoPath
+					prOut, prErr := pr.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "pr.stdout.log"), prOut, 0o644)
+					if prErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "pr step failed: gh pr create: " + prErr.Error()
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary})
+						return
+					}
+					prURL := strings.TrimSpace(string(prOut))
+					_ = appendArtifactJSON(st, au, mustJSON(map[string]any{"type": "pr_link", "title": "PR for " + taskID, "uri": prURL, "task_id": taskID, "meta": map[string]any{"run_id": runID}}))
+
+					// Step: QA
+					qa := exec.Command("bash", "-lc", "go test ./... && npm -C web run build")
+					qa.Dir = repoPath
+					qaOut, qaErr := qa.CombinedOutput()
+					_ = os.WriteFile(filepath.Join(dir, "qa.log"), qaOut, 0o644)
+					_ = appendArtifactJSON(st, au, mustJSON(map[string]any{"type": "qa_log", "title": "QA log " + runID, "uri": "file://" + filepath.Join(dir, "qa.log"), "task_id": taskID, "meta": map[string]any{"run_id": runID}}))
+					if qaErr != nil {
+						r.Status = "failed"
+						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+						r.Summary = "qa failed"
+						resb, _ := json.MarshalIndent(map[string]any{"status": "fail", "summary": r.Summary, "pr": prURL}, "", "  ")
+						_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+						c.JSON(500, gin.H{"error": r.Summary, "pr": prURL})
+						return
+					}
+
+					// Done
+					r.Status = "done"
+					r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+					r.Summary = "full pipeline complete"
+					resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary, "pr": prURL}, "", "  ")
+					_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+					au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "backend": runnerBackend})
+					c.JSON(201, runDetail{Run: r})
+					return
+				}
+
+				// pm_only done
+				r.Status = "done"
+				r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+				r.Summary = "pm_only complete"
+				resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
+				_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+				au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "backend": runnerBackend})
 			} else {
 				// Attempt to run the CLI once with prompt via stdin (generic fallback)
 				cmd := exec.Command(cmdStr)
@@ -230,16 +377,6 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 				}
 				_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
 			}
-
-			// success path continues below
-
-			r.Status = "done"
-			r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-			r.Summary = "local_cli ok"
-			resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
-			_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
-			au.Emit("system", "run.step.done", map[string]any{"run_id": runID, "task_id": taskID, "role": "pm", "status": "ok"})
-			au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
 		} else {
 			// Fallback placeholder
 			r.Status = "done"
