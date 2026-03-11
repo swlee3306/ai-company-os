@@ -16,6 +16,11 @@ type settingsObj struct {
 	Approval struct {
 		PolicyText string `json:"policy_text"`
 	} `json:"approval"`
+	Runner struct {
+		Type    string `json:"type"`
+		Command string `json:"command"`
+		Workdir string `json:"workdir"`
+	} `json:"runner"`
 }
 
 func registerSettingsRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.FileAudit) {
@@ -39,7 +44,13 @@ func registerSettingsRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit
 			c.JSON(400, gin.H{"error": "driver.selected must be k3d|k3s"})
 			return
 		}
-		au.Emit("api", "settings.update", map[string]any{"driver": body.Driver.Selected})
+		switch body.Runner.Type {
+		case "", "codex_cli", "claude_code", "gemini_cli", "custom":
+		default:
+			c.JSON(400, gin.H{"error": "runner.type must be codex_cli|claude_code|gemini_cli|custom"})
+			return
+		}
+		au.Emit("api", "settings.update", map[string]any{"driver": body.Driver.Selected, "runner": body.Runner.Type})
 		out, _ := json.MarshalIndent(body, "", "  ")
 		if err := st.WriteSettings(out); err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})

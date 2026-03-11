@@ -15,6 +15,7 @@ import Artifacts from './pages/Artifacts';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
 import ArtifactDetail from './pages/ArtifactDetail';
+import Runs from './pages/Runs';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
       { path: '/artifacts/:id', element: <ArtifactDetail /> },
       { path: '/audit-logs', element: <AuditLogs /> },
       { path: '/settings', element: <Settings /> },
+      { path: '/runs', element: <Runs /> },
     ],
   },
 ]);

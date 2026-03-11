@@ -32,6 +32,27 @@ export default function TaskDetail() {
 
   const linked = (approvals || []).find((a) => a.task_id === id) || null;
 
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState('');
+
+  async function startRun(pipeline: string) {
+    if (!id) return;
+    setRunError('');
+    setRunning(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks/${id}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pipeline }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch (e: any) {
+      setRunError(e?.message ?? String(e));
+    } finally {
+      setRunning(false);
+    }
+  }
+
   return (
     <div style={{ maxWidth: 900 }}>
       <h1 style={{ marginTop: 0 }}>Task</h1>
@@ -49,15 +70,37 @@ export default function TaskDetail() {
           <div style={{ color: '#6b7280', fontSize: 12 }}>state: {task.state}</div>
 
           <div style={{ marginTop: 12 }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>Runner</div>
+            {runError ? <div style={{ color: color.text.danger, fontSize: 12, marginBottom: 8 }}>{runError}</div> : null}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                onClick={() => startRun('pm_only')}
+                disabled={running}
+                style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${color.border.default}`, background: color.text.primary, color: 'white' }}
+              >
+                {running ? 'Running…' : 'Run (PM only)'}
+              </button>
+              <button
+                onClick={() => startRun('full')}
+                disabled={running}
+                style={{ padding: '10px 14px', borderRadius: 10, border: `1px solid ${color.border.default}`, background: color.bg.surface }}
+              >
+                Run (full)
+              </button>
+              <Link to="/runs" style={{ alignSelf: 'center', color: color.text.primary }}>View runs →</Link>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12 }}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Linked approval</div>
             {linked ? (
               <div style={{ fontSize: 12 }}>
-                <Link to="/approvals" style={{ color: '#111827' }}>{linked.id}</Link>
-                <span style={{ marginLeft: 8, color: '#6b7280' }}>{linked.type} / {linked.risk} / {linked.status}</span>
-                <div style={{ marginTop: 6, color: '#6b7280' }}>Open Approval Center and select the item to review evidence/decide.</div>
+                <Link to="/approvals" style={{ color: color.text.primary }}>{linked.id}</Link>
+                <span style={{ marginLeft: 8, color: color.text.muted }}>{linked.type} / {linked.risk} / {linked.status}</span>
+                <div style={{ marginTop: 6, color: color.text.muted }}>Open Approval Center and select the item to review evidence/decide.</div>
               </div>
             ) : (
-              <div style={{ color: '#6b7280', fontSize: 12 }}>No linked approval found for this task.</div>
+              <div style={{ color: color.text.muted, fontSize: 12 }}>No linked approval found for this task.</div>
             )}
           </div>
         </div>
