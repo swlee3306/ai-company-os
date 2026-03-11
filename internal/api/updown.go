@@ -11,14 +11,22 @@ import (
 func init() {
 	upCmd := &cobra.Command{
 		Use:   "up",
-		Short: "Start the local runtime (k3d cluster)",
+		Short: "Start the local runtime (k3d cluster or k3s service depending on driver)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := store.NewFileStore(defaultDataDir())
 			au := audit.NewFileAudit(st)
+			selected := readSelectedDriver(st)
+
 			name, _ := cmd.Flags().GetString("cluster")
 			if name == "" {
 				name = "company-os"
 			}
+
+			if selected == "k3s" {
+				au.Emit("cli", "driver.k3s.up", nil)
+				return driver.K3SUp()
+			}
+
 			au.Emit("cli", "driver.k3d.up", map[string]any{"cluster": name})
 			return driver.K3DUp(name)
 		},
@@ -27,14 +35,22 @@ func init() {
 
 	downCmd := &cobra.Command{
 		Use:   "down",
-		Short: "Stop the local runtime (k3d cluster)",
+		Short: "Stop the local runtime (k3d cluster or k3s service depending on driver)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := store.NewFileStore(defaultDataDir())
 			au := audit.NewFileAudit(st)
+			selected := readSelectedDriver(st)
+
 			name, _ := cmd.Flags().GetString("cluster")
 			if name == "" {
 				name = "company-os"
 			}
+
+			if selected == "k3s" {
+				au.Emit("cli", "driver.k3s.down", nil)
+				return driver.K3SDown()
+			}
+
 			au.Emit("cli", "driver.k3d.down", map[string]any{"cluster": name})
 			return driver.K3DDown(name)
 		},
