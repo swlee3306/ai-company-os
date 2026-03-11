@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/spf13/cobra"
 
@@ -12,25 +11,18 @@ import (
 )
 
 func init() {
+	// status is already implemented as reading state.json; enhance by writing computed driver status.
 	cmd := &cobra.Command{
-		Use:   "status",
-		Short: "Show current system status",
+		Use:   "driver-check",
+		Short: "Run driver checks (Docker/k3d) and persist to state.json (debug helper)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			st := store.NewFileStore(defaultDataDir())
 			au := audit.NewFileAudit(st)
-			au.Emit("cli", "status", nil)
+			au.Emit("cli", "driver.check", nil)
 
-			base := map[string]any{}
-			b, err := st.ReadState()
-			if err == nil {
-				_ = json.Unmarshal(b, &base)
-			}
-
-			base["driver"] = driver.CheckAll()
-
-			out, _ := json.MarshalIndent(base, "", "  ")
-			fmt.Println(string(out))
-			return nil
+			res := driver.CheckAll()
+			b, _ := json.MarshalIndent(map[string]any{"driver": res}, "", "  ")
+			return st.WriteState(b)
 		},
 	}
 	rootCmd.AddCommand(cmd)
