@@ -35,7 +35,14 @@ func CheckAll(selected string) DriverStatus {
 	checks = append(checks, mk("docker.info", dockerOK, dockerDetail))
 
 	if selected == "k3s" {
-		checks = append(checks, Check{Name: "k3s", Status: "warn", Detail: "k3s checks not implemented yet"})
+		ok, detail := K3SChecks()
+		checks = append(checks, mk("k3s.version", ok, detail))
+		state, sdetail := K3SServiceState()
+		if state == "active" {
+			checks = append(checks, Check{Name: "k3s.service", Status: "ok", Detail: state})
+		} else {
+			checks = append(checks, Check{Name: "k3s.service", Status: "warn", Detail: strings.TrimSpace(state + " " + sdetail)})
+		}
 		st.Checks = checks
 		return st
 	}
