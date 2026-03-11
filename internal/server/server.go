@@ -150,5 +150,51 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 		c.JSON(404, gin.H{"error": "not found"})
 	})
 
+	api.POST("/approvals/:id/decision", func(c *gin.Context) {
+		id := c.Param("id")
+		var body struct {
+			Decision string `json:"decision"`
+			Reason   string `json:"reason"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(400, gin.H{"error": "invalid json"})
+			return
+		}
+		if body.Decision != "approve" && body.Decision != "reject" {
+			c.JSON(400, gin.H{"error": "decision must be approve|reject"})
+			return
+		}
+		if body.Decision == "reject" && body.Reason == "" {
+			c.JSON(400, gin.H{"error": "reason required for reject"})
+			return
+		}
+
+		au.Emit("api", "approvals.decision", map[string]any{"id": id, "decision": body.Decision})
+		b, err := st.ReadApprovals()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		var arr []map[string]any
+		if err := json.Unmarshal(b, &arr); err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		for _, it := range arr {
+			if it["id"] == id {
+				it["status"] = body.Decision
+				it["decision_reason"] = body.Reason
+				out, _ := json.MarshalIndent(arr, "", "  ")
+				if err := st.WriteApprovals(out); err != nil {
+					c.JSON(500, gin.H{"error": err.Error()})
+					return
+				}
+				c.JSON(200, it)
+				return
+			}
+		}
+		c.JSON(404, gin.H{"error": "not found"})
+	})
+
 	return r.Run(addr)
 }
