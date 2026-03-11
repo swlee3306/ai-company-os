@@ -13,6 +13,7 @@ import Approvals from './pages/Approvals';
 import Artifacts from './pages/Artifacts';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
+import ArtifactDetail from './pages/ArtifactDetail';
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: '/workflows', element: <Workflows /> },
       { path: '/approvals', element: <Approvals /> },
       { path: '/artifacts', element: <Artifacts /> },
+      { path: '/artifacts/:id', element: <ArtifactDetail /> },
       { path: '/audit-logs', element: <AuditLogs /> },
       { path: '/settings', element: <Settings /> },
     ],
