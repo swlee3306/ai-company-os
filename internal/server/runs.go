@@ -196,7 +196,7 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					c.JSON(400, gin.H{"error": "workspace.repo_path required for codex"})
 					return
 				}
-				cmd := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", "-a", "untrusted", prompt)
+				cmd := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", prompt)
 				outB, err := cmd.CombinedOutput()
 				if err != nil {
 					_ = os.WriteFile(filepath.Join(dir, "stdout.log"), outB, 0o644)
