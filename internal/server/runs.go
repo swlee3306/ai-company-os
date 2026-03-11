@@ -34,14 +34,24 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 			body.Pipeline = "pm_only"
 		}
 
-		// read runner from settings (best-effort)
+		// read runner settings (best-effort)
 		runnerType := "codex_cli"
+		runnerBackend := "local_placeholder"
+		pmAgent := ""
 		if b, err := st.ReadSettings(); err == nil {
 			var s map[string]any
 			if json.Unmarshal(b, &s) == nil {
-				if r, ok := s["runner"].(map[string]any); ok {
-					if t, ok := r["type"].(string); ok && t != "" {
+				if rset, ok := s["runner"].(map[string]any); ok {
+					if t, ok := rset["type"].(string); ok && t != "" {
 						runnerType = t
+					}
+					if b, ok := rset["backend"].(string); ok && b != "" {
+						runnerBackend = b
+					}
+					if agents, ok := rset["agents"].(map[string]any); ok {
+						if s, ok := agents["pm"].(string); ok {
+							pmAgent = s
+						}
 					}
 				}
 			}
@@ -69,14 +79,72 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 
 		au.Emit("api", "run.start", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "pipeline": body.Pipeline})
 
-		// For MVP: immediately mark done (no actual CLI execution yet)
-		r.Status = "done"
-		r.EndedAt = time.Now().UTC().Format(time.RFC3339)
-		r.Summary = "runner mvp placeholder (execution engine integration next)"
-		resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
-		_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
-		_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte("(runner mvp) done\n"), 0o644)
-		au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType})
+		if runnerBackend == "openclaw_acp" {
+			if pmAgent == "" {
+				c.JSON(400, gin.H{"error": "runner.agents.pm required for openclaw_acp"})
+				return
+			}
+
+			// Read task content to feed into the PM step
+			tb, err := st.ReadTasks()
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+			var tasks []map[string]any
+			_ = json.Unmarshal(tb, &tasks)
+			title := ""
+			desc := ""
+			for _, t := range tasks {
+				if t["id"] == taskID {
+					title, _ = t["title"].(string)
+					desc, _ = t["desc"].(string)
+					break
+				}
+			}
+
+			prompt := "You are PM. Turn this Task into acceptance criteria and execution plan.\n" +
+				"Task ID: " + taskID + "\n" +
+				"Title: " + title + "\n" +
+				"Desc: " + desc + "\n" +
+				"Constraints: branch/PR only, QA batch once, audit-first.\n" +
+				"Output: a concise plan + next agent steps.\n"
+			_ = os.WriteFile(filepath.Join(dir, "prompt.txt"), []byte(prompt), 0o644)
+
+			// Spawn ACP session via OpenClaw Tools Invoke
+			args := map[string]any{
+				"task":    prompt,
+				"runtime": "acp",
+				"agentId": pmAgent,
+				"thread":  true,
+				"mode":    "session",
+				"label":   "aicos:" + runID + ":pm",
+			}
+			res, err := openclawInvoke("sessions_spawn", args)
+			if err != nil {
+				c.JSON(500, gin.H{"error": err.Error()})
+				return
+			}
+			_ = os.WriteFile(filepath.Join(dir, "openclaw_spawn.json"), res, 0o644)
+			_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte("(openclaw_acp) spawned\n"), 0o644)
+
+			// Mark done for MVP (we don't stream logs yet)
+			r.Status = "done"
+			r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+			r.Summary = "openclaw_acp: spawned PM session (log streaming next)"
+			resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
+			_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+			au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType, "backend": runnerBackend})
+		} else {
+			// For MVP: immediately mark done (no actual CLI execution yet)
+			r.Status = "done"
+			r.EndedAt = time.Now().UTC().Format(time.RFC3339)
+			r.Summary = "runner mvp placeholder (execution engine integration next)"
+			resb, _ := json.MarshalIndent(map[string]any{"status": "ok", "summary": r.Summary}, "", "  ")
+			_ = os.WriteFile(filepath.Join(dir, "RESULT.json"), resb, 0o644)
+			_ = os.WriteFile(filepath.Join(dir, "stdout.log"), []byte("(runner mvp) done\n"), 0o644)
+			au.Emit("system", "run.done", map[string]any{"run_id": runID, "task_id": taskID, "runner": runnerType})
+		}
 
 		// Create artifact pointing to stdout.log
 		artifactBody := map[string]any{
