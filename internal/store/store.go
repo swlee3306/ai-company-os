@@ -85,3 +85,46 @@ func (s *FileStore) ReadDoctor() ([]byte, error) {
 	}
 	return b, err
 }
+
+func (s *FileStore) readJSONOrDefault(name string, def string) ([]byte, error) {
+	if err := s.ensureDir(); err != nil {
+		return nil, err
+	}
+	p := s.path(name)
+	b, err := os.ReadFile(p)
+	if errors.Is(err, os.ErrNotExist) {
+		return []byte(def), nil
+	}
+	return b, err
+}
+
+func (s *FileStore) writeJSON(name string, b []byte) error {
+	if err := s.ensureDir(); err != nil {
+		return err
+	}
+	return os.WriteFile(s.path(name), b, 0o644)
+}
+
+func (s *FileStore) ReadAgents() ([]byte, error) {
+	return s.readJSONOrDefault("agents.json", "[]")
+}
+
+func (s *FileStore) WriteAgents(b []byte) error {
+	return s.writeJSON("agents.json", b)
+}
+
+func (s *FileStore) ReadProjects() ([]byte, error) {
+	return s.readJSONOrDefault("projects.json", "[]")
+}
+
+func (s *FileStore) WriteProjects(b []byte) error {
+	return s.writeJSON("projects.json", b)
+}
+
+func (s *FileStore) ReadApprovals() ([]byte, error) {
+	return s.readJSONOrDefault("approvals.json", "[]")
+}
+
+func (s *FileStore) WriteApprovals(b []byte) error {
+	return s.writeJSON("approvals.json", b)
+}

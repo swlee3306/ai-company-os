@@ -56,5 +56,35 @@ func Run(addr string, st *store.FileStore, au *audit.FileAudit) error {
 		c.Data(200, "application/json", b)
 	})
 
+	api.GET("/agents", func(c *gin.Context) {
+		au.Emit("api", "agents.list", nil)
+		b, err := st.ReadAgents()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.Data(200, "application/json", b)
+	})
+
+	api.GET("/projects", func(c *gin.Context) {
+		au.Emit("api", "projects.list", nil)
+		b, err := st.ReadProjects()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.Data(200, "application/json", b)
+	})
+
+	api.GET("/approvals", func(c *gin.Context) {
+		au.Emit("api", "approvals.list", nil)
+		b, err := st.ReadApprovals()
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		c.Data(200, "application/json", b)
+	})
+
 	return r.Run(addr)
 }
