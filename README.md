@@ -61,3 +61,7 @@ npm run dev
 ```
 
 Then open the Vite URL and ensure the backend API is running at `VITE_API_BASE`.
+
+## Korean guide
+
+- See [README.ko.md](./README.ko.md)
