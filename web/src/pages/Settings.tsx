@@ -5,7 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8787';
 type Settings = {
   driver: { selected: 'k3d' | 'k3s' };
   approval: { policy_text: string };
-  runner?: { type: string; command: string; workdir?: string };
+  runner?: { backend?: string; type: string; command: string; workdir?: string; agents?: { pm?: string } };
 };
 
 export default function Settings() {
@@ -78,7 +78,20 @@ export default function Settings() {
 
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontWeight: 700, marginBottom: 6 }}>Runner</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 8 }}>
+
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ color: '#6b7280', fontSize: 12, marginBottom: 6 }}>Backend</div>
+              <select
+                value={data.runner?.backend || 'local_placeholder'}
+                onChange={(e) => setData({ ...data, runner: { ...(data.runner || { type: 'codex_cli', command: 'codex' }), backend: e.target.value } })}
+                style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
+              >
+                <option value="local_placeholder">local_placeholder</option>
+                <option value="openclaw_acp">openclaw_acp</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '160px 1fr', gap: 8, marginBottom: 8 }}>
               <select
                 value={data.runner?.type || 'codex_cli'}
                 onChange={(e) => setData({ ...data, runner: { ...(data.runner || { command: 'codex' }), type: e.target.value } })}
@@ -96,6 +109,23 @@ export default function Settings() {
                 style={{ padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
               />
             </div>
+
+            {data.runner?.backend === 'openclaw_acp' ? (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ color: '#6b7280', fontSize: 12, marginBottom: 6 }}>PM agentId (ACP)</div>
+                <input
+                  value={data.runner?.agents?.pm || ''}
+                  onChange={(e) => setData({ ...data, runner: { ...(data.runner || { type: 'codex_cli', command: 'codex' }), agents: { ...(data.runner?.agents || {}), pm: e.target.value } } })}
+                  placeholder="e.g., acp.codex or your configured ACP agent id"
+                  style={{ width: '100%', padding: 10, borderRadius: 10, border: '1px solid #e5e7eb' }}
+                />
+                <div style={{ marginTop: 6, color: '#6b7280', fontSize: 12 }}>
+                  Requires OPENCLAW_GATEWAY_URL and OPENCLAW_GATEWAY_TOKEN on the server.
+                  Also, Gateway /tools/invoke must allow sessions_spawn.
+                </div>
+              </div>
+            ) : null}
+
             <div style={{ marginTop: 6, color: '#6b7280', fontSize: 12 }}>
               Note: API keys are not stored here. Use CLI login or environment variables.
             </div>
