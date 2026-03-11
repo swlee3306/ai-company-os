@@ -29,7 +29,7 @@ func init() {
 				{ID: "agent-runtime-v2", Name: "agent-runtime v2", Status: "reviewing", Phase: "perf + stability", OwnerCEO: "Flant", TeamLead: "openclaw", Due: "", Summary: "Runtime upgrade with tighter audit + approval semantics."},
 			}
 			approvals := []model.ApprovalItem{
-				{ID: "appr-1", Type: "production deploy", Requester: "PM (planner-manager-01)", Target: "billing-core", Risk: "HIGH", Action: "approve or reject", Status: "pending"},
+				{ID: "appr-1", Type: "production deploy", Requester: "PM (planner-manager-01)", Target: "billing-core", Risk: "HIGH", Action: "approve or reject", Status: "pending", TaskID: "T-184"},
 				{ID: "appr-2", Type: "tool permission", Requester: "Team Lead (manager-ai)", Target: "devops-worker-01", Risk: "HIGH", Action: "approve or reject", Status: "pending"},
 				{ID: "appr-3", Type: "agent activation", Requester: "Owner (CEO)", Target: "QA (qa-reviewer-02)", Risk: "MEDIUM", Action: "approve or reject", Status: "pending"},
 			}
@@ -44,6 +44,9 @@ func init() {
 				return err
 			}
 			if err := st.WriteApprovals(qb); err != nil {
+				return err
+			}
+			if err := seedTasks(st); err != nil {
 				return err
 			}
 

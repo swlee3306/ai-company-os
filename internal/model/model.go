@@ -34,4 +34,5 @@ type ApprovalItem struct {
 	Risk      string `json:"risk"`
 	Action    string `json:"action"`
 	Status    string `json:"status"`
+	TaskID    string `json:"task_id,omitempty"`
 }

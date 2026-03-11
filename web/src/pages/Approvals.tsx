@@ -144,6 +144,7 @@ export default function Approvals() {
                 <div><strong>requester</strong>: {selected.requester}</div>
                 <div><strong>target</strong>: {selected.target}</div>
                 <div><strong>risk</strong>: {selected.risk}</div>
+                {selected.task_id ? <div><strong>task</strong>: {selected.task_id}</div> : null}
               </div>
 
               <div style={{ marginBottom: 12 }}>
