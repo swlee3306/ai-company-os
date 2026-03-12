@@ -353,7 +353,8 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 
 					// Step: QA
 					// Ensure web/ dependencies exist (tsc, vite, etc.) before running web build.
-					qa := exec.Command("bash", "-lc", "go test ./... && npm -C web ci && npm -C web run build")
+					// Prefer npm ci when lockfile exists; fall back to npm install otherwise.
+					qa := exec.Command("bash", "-lc", "go test ./... && (test -f web/package-lock.json && npm -C web ci || npm -C web install) && npm -C web run build")
 					qa.Dir = repoPath
 					qaOut, qaErr := qa.CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "qa.log"), qaOut, 0o644)
