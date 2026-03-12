@@ -6,67 +6,126 @@ import (
 )
 
 // extractUnifiedDiff tries to pull a clean unified diff out of a noisy LLM output.
-// It only returns a patch if it finds at least one valid `diff --git` header.
+// Strategy:
+// - Find all occurrences of "diff --git".
+// - For each candidate block, keep only patch-looking lines (skip tool chatter).
+// - Prefer a candidate that contains file headers (---/+++), and at least one hunk (@@).
 func extractUnifiedDiff(out []byte) []byte {
-	i := bytes.Index(out, []byte("diff --git"))
-	if i < 0 {
+	idxs := []int{}
+	needle := []byte("diff --git")
+	for i := 0; ; {
+		j := bytes.Index(out[i:], needle)
+		if j < 0 {
+			break
+		}
+		idxs = append(idxs, i+j)
+		i = i + j + len(needle)
+	}
+	if len(idxs) == 0 {
 		return nil
 	}
-	lines := strings.Split(string(out[i:]), "\n")
-	kept := make([]string, 0, len(lines))
-	started := false
-	for _, raw := range lines {
-		l := strings.TrimSuffix(raw, "\r")
-		if l == "" {
-			if started {
-				kept = append(kept, l)
+
+	type cand struct {
+		patch      []byte
+		hasHeaders bool
+		hasHunks   bool
+		lines      int
+	}
+	cands := []cand{}
+
+	for _, start := range idxs {
+		lines := strings.Split(string(out[start:]), "\n")
+		kept := make([]string, 0, len(lines))
+		hasHeaders := false
+		hasHunks := false
+		started := false
+
+		for _, raw := range lines {
+			l := strings.TrimSuffix(raw, "\r")
+			if l == "" {
+				if started {
+					kept = append(kept, l)
+				}
+				continue
 			}
-			continue
-		}
 
-		// Ignore common tool chatter/noise.
-		if strings.HasPrefix(l, "tokens used") || strings.HasPrefix(l, "codex") || strings.HasPrefix(l, "thinking") || strings.HasPrefix(l, "exec") || strings.HasPrefix(l, "file update") || strings.HasPrefix(l, "succeeded in") {
-			continue
-		}
+			// Ignore common tool chatter/noise.
+			if strings.HasPrefix(l, "tokens used") || strings.HasPrefix(l, "codex") || strings.HasPrefix(l, "thinking") || strings.HasPrefix(l, "exec") || strings.HasPrefix(l, "file update") || strings.HasPrefix(l, "succeeded in") {
+				continue
+			}
 
-		// Normalize common quoting artifacts.
-		n := strings.TrimLeft(l, "`\"'")
-		n = strings.TrimRight(n, "`\"'.")
+			// Normalize common quoting artifacts.
+			n := strings.TrimLeft(l, "`\"'")
+			n = strings.TrimRight(n, "`\"'.")
 
-		// Headers
-		if strings.HasPrefix(n, "diff --git ") {
-			started = true
+			if strings.HasPrefix(n, "diff --git ") {
+				started = true
+				kept = append(kept, n)
+				continue
+			}
+			if !started {
+				continue
+			}
+
+			switch {
+			case strings.HasPrefix(n, "index "):
+			case strings.HasPrefix(n, "--- "):
+				hasHeaders = true
+			case strings.HasPrefix(n, "+++ "):
+				hasHeaders = true
+			case strings.HasPrefix(n, "@@ "):
+				hasHunks = true
+			case strings.HasPrefix(n, "new file mode "):
+			case strings.HasPrefix(n, "deleted file mode "):
+			case strings.HasPrefix(n, "similarity index "):
+			case strings.HasPrefix(n, "rename from "):
+			case strings.HasPrefix(n, "rename to "):
+			case strings.HasPrefix(n, "\\ No newline at end of file"):
+			case strings.HasPrefix(n, "+"):
+			case strings.HasPrefix(n, "-"):
+			case strings.HasPrefix(n, " "):
+			default:
+				// keep scanning; this candidate may contain multiple diffs.
+				continue
+			}
 			kept = append(kept, n)
-			continue
+
+			// Heuristic end: once we have headers+hunks and then we see a new diff later, we can stop.
+			// (We don't implement explicit stop here; selection logic prefers the best match anyway.)
 		}
 
-		if !started {
-			// Don't accept hunks without a header.
+		if !started || len(kept) == 0 {
 			continue
 		}
-
-		// Unified diff + git-style headers.
-		switch {
-		case strings.HasPrefix(n, "index "):
-		case strings.HasPrefix(n, "--- "):
-		case strings.HasPrefix(n, "+++ "):
-		case strings.HasPrefix(n, "@@ "):
-		case strings.HasPrefix(n, "new file mode "):
-		case strings.HasPrefix(n, "deleted file mode "):
-		case strings.HasPrefix(n, "similarity index "):
-		case strings.HasPrefix(n, "rename from "):
-		case strings.HasPrefix(n, "rename to "):
-		case strings.HasPrefix(n, "\\ No newline at end of file"):
-		case strings.HasPrefix(n, "+"):
-		case strings.HasPrefix(n, "-"):
-		case strings.HasPrefix(n, " "):
-		default:
-			continue
-		}
-		kept = append(kept, n)
+		p := []byte(strings.Join(kept, "\n") + "\n")
+		cands = append(cands, cand{patch: p, hasHeaders: hasHeaders, hasHunks: hasHunks, lines: len(kept)})
 	}
-	if !started || len(kept) == 0 {
+
+	if len(cands) == 0 {
 		return nil
 	}
-	return []byte(strings.Join(kept, "\n") + "\n")
+
+	// Prefer a candidate with headers + hunks, then largest line count.
+	best := cands[0]
+	for _, c := range cands[1:] {
+		bScore := 0
+		cScore := 0
+		if best.hasHeaders {
+			bScore += 2
+		}
+		if best.hasHunks {
+			bScore += 1
+		}
+		if c.hasHeaders {
+			cScore += 2
+		}
+		if c.hasHunks {
+			cScore += 1
+		}
+		if cScore > bScore || (cScore == bScore && c.lines > best.lines) {
+			best = c
+		}
+	}
+
+	return best.patch
 }
