@@ -239,8 +239,9 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					}
 
 					bePrompt := "You are BE. Make the minimal change to satisfy the Task.\n" +
-						"IMPORTANT: Output ONLY a unified diff. No commentary, no code fences, no 'file update:' lines.\n" +
-						"The diff MUST start with: diff --git\n" +
+						"SCOPE LIMIT (MVP): ONLY modify README.md. Do not change any other files.\n" +
+						"OUTPUT FORMAT: Output ONLY a unified diff. No commentary, no code fences, no 'file update:' lines.\n" +
+						"The diff MUST start with: diff --git a/README.md b/README.md\n" +
 						prompt
 					beOut, beErr := exec.Command(cmdStr, "exec", "-C", repoPath, "-s", "workspace-write", bePrompt).CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "be.raw.log"), beOut, 0o644)
