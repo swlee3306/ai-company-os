@@ -223,10 +223,19 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 						branch = strings.ReplaceAll(branch, ch, "-")
 					}
 					au.Emit("system", "run.step.start", map[string]any{"run_id": runID, "task_id": taskID, "role": "be"})
-					co := exec.Command("git", "checkout", "-b", branch)
+					co := exec.Command("git", "checkout", "-B", branch, "main")
 					co.Dir = repoPath
 					coOut, coErr := co.CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "be.git.log"), coOut, 0o644)
+
+					// Ensure clean working tree before applying any patch.
+					clean := exec.Command("git", "reset", "--hard")
+					clean.Dir = repoPath
+					_, _ = clean.CombinedOutput()
+					cl2 := exec.Command("git", "clean", "-fd")
+					cl2.Dir = repoPath
+					_, _ = cl2.CombinedOutput()
+
 					if coErr != nil {
 						r.Status = "failed"
 						r.EndedAt = time.Now().UTC().Format(time.RFC3339)
@@ -265,6 +274,7 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 						c.JSON(500, gin.H{"error": r.Summary})
 						return
 					}
+					patch = sanitizePatch(patch)
 					_ = os.WriteFile(filepath.Join(dir, "be.patch.diff"), patch, 0o644)
 					ap := exec.Command("git", "apply", "--3way", "--whitespace=nowarn", filepath.Join(dir, "be.patch.diff"))
 					ap.Dir = repoPath
