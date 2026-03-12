@@ -352,7 +352,8 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					_ = appendArtifactJSON(st, au, mustJSON(map[string]any{"type": "pr_link", "title": "PR for " + taskID, "uri": prURL, "task_id": taskID, "meta": map[string]any{"run_id": runID}}))
 
 					// Step: QA
-					qa := exec.Command("bash", "-lc", "go test ./... && npm -C web run build")
+					// Ensure web/ dependencies exist (tsc, vite, etc.) before running web build.
+					qa := exec.Command("bash", "-lc", "go test ./... && npm -C web ci && npm -C web run build")
 					qa.Dir = repoPath
 					qaOut, qaErr := qa.CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "qa.log"), qaOut, 0o644)
