@@ -39,6 +39,8 @@ func extractUnifiedDiff(out []byte) []byte {
 		hasHeaders := false
 		hasHunks := false
 		started := false
+		seenMinus := false
+		seenPlus := false
 
 		for _, raw := range lines {
 			l := strings.TrimSuffix(raw, "\r")
@@ -59,6 +61,10 @@ func extractUnifiedDiff(out []byte) []byte {
 			n = strings.TrimRight(n, "`\"'.")
 
 			if strings.HasPrefix(n, "diff --git ") {
+				// If we already captured a complete diff (headers+hunks), stop at the next diff.
+				if started && (seenMinus && seenPlus) && hasHunks {
+					break
+				}
 				started = true
 				kept = append(kept, n)
 				continue
@@ -71,9 +77,15 @@ func extractUnifiedDiff(out []byte) []byte {
 			case strings.HasPrefix(n, "index "):
 			case strings.HasPrefix(n, "--- "):
 				hasHeaders = true
+				seenMinus = true
 			case strings.HasPrefix(n, "+++ "):
 				hasHeaders = true
+				seenPlus = true
 			case strings.HasPrefix(n, "@@ "):
+				// Do not accept hunks before file headers are present.
+				if !(seenMinus && seenPlus) {
+					continue
+				}
 				hasHunks = true
 			case strings.HasPrefix(n, "new file mode "):
 			case strings.HasPrefix(n, "deleted file mode "):
@@ -82,8 +94,17 @@ func extractUnifiedDiff(out []byte) []byte {
 			case strings.HasPrefix(n, "rename to "):
 			case strings.HasPrefix(n, "\\ No newline at end of file"):
 			case strings.HasPrefix(n, "+"):
+				if !(seenMinus && seenPlus) {
+					continue
+				}
 			case strings.HasPrefix(n, "-"):
+				if !(seenMinus && seenPlus) {
+					continue
+				}
 			case strings.HasPrefix(n, " "):
+				if !(seenMinus && seenPlus) {
+					continue
+				}
 			default:
 				// keep scanning; this candidate may contain multiple diffs.
 				continue
