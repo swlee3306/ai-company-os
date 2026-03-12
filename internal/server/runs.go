@@ -299,6 +299,13 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					add := exec.Command("git", "add", "-A")
 					add.Dir = repoPath
 					_, _ = add.CombinedOutput()
+					// Ensure git has a local identity for commits (avoid 'Author identity unknown').
+					cfgName := exec.Command("git", "config", "user.name", "ai-company-os-bot")
+					cfgName.Dir = repoPath
+					_, _ = cfgName.CombinedOutput()
+					cfgEmail := exec.Command("git", "config", "user.email", "ai-company-os-bot@localhost")
+					cfgEmail.Dir = repoPath
+					_, _ = cfgEmail.CombinedOutput()
 					cm := exec.Command("git", "commit", "-m", "feat: "+taskID+" (auto)")
 					cm.Dir = repoPath
 					cmOut, cmErr := cm.CombinedOutput()
