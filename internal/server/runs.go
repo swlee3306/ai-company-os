@@ -276,6 +276,13 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 					}
 					patch = sanitizePatch(patch)
 					_ = os.WriteFile(filepath.Join(dir, "be.patch.diff"), patch, 0o644)
+
+					// codex exec in workspace-write mode may have modified files already.
+					// Reset to a clean base before applying the extracted patch.
+					reset2 := exec.Command("git", "reset", "--hard")
+					reset2.Dir = repoPath
+					_, _ = reset2.CombinedOutput()
+
 					ap := exec.Command("git", "apply", "--3way", "--whitespace=nowarn", filepath.Join(dir, "be.patch.diff"))
 					ap.Dir = repoPath
 					apOut, apErr := ap.CombinedOutput()
