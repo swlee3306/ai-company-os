@@ -265,7 +265,7 @@ func registerRunRoutes(api *gin.RouterGroup, st *store.FileStore, au *audit.File
 						return
 					}
 					_ = os.WriteFile(filepath.Join(dir, "be.patch.diff"), patch, 0o644)
-					ap := exec.Command("git", "apply", "--whitespace=nowarn", filepath.Join(dir, "be.patch.diff"))
+					ap := exec.Command("git", "apply", "--3way", "--whitespace=nowarn", filepath.Join(dir, "be.patch.diff"))
 					ap.Dir = repoPath
 					apOut, apErr := ap.CombinedOutput()
 					_ = os.WriteFile(filepath.Join(dir, "be.apply.log"), apOut, 0o644)
