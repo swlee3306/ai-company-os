@@ -1,5 +1,13 @@
 # AI Company OS
 
+## 한 줄 소개
+로컬 환경에서 AI 작업 흐름을 운영하기 위한 실험 저장소입니다.
+
+## 저장소 성격
+- 분류: 백엔드 / 플랫폼 실험
+- 목적: 서버, CLI, 웹 UI를 함께 다루는 로컬 운영 도구
+- 핵심 기술: Go, React, Vite, CLI
+
 Local, installable Company OS for running your AI engineering org like a real operating company.
 
 ## Quick start (MVP)
