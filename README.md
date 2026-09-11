@@ -8,7 +8,9 @@
 - 목적: 서버, CLI, 웹 UI를 함께 다루는 로컬 운영 도구
 - 핵심 기술: Go, React, Vite, CLI
 
-Local, installable Company OS for running your AI engineering org like a real operating company.
+Experimental local workspace for coordinating AI engineering tasks through a Go CLI/API and React UI. This is not a production multi-tenant service or evidence of autonomous company operation.
+
+Verification (2026-09-11): `go build -mod=readonly ./...` passed. Real provider calls, long-running workflows and production reliability were not validated by that build.
 
 ## Quick start (MVP)
 
